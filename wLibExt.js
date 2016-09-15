@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         WazeWrap
+// @name         wLibExt
 // @namespace    
 // @version      0.1
 // @description  A library to wrap the Waze API
