@@ -7,57 +7,56 @@
 // @include      https://beta.waze.com/*editor/*
 // @include      https://www.waze.com/*editor/*
 // @exclude      https://www.waze.com/*user/editor/*
-// @require      
+// @require      https://greasyfork.org/scripts/9794-wlib/code/wLib.js?version=106259
 // @grant        none
 // ==/UserScript==
 
-/* global W */
+/* global W,wLib */
 
 (function() {
     'use strict';
 
-    function bootstrap() {
-        
+    function bootstrap(tries) {
+        tries = tries || 1;
+        if (window.wLib) {
+            init();
+        } else if (tries < 1000) {
+            setTimeout(function () { bootstrap(tries++); }, 200);
+        } else {
+            console.log('wLibExt failed to load');
+        }
     }
 
+    bootstrap();
+
     function init(){
+        console.log('wLibExt Loaded');
+        extendModel();
+    }
 
-        var Model = new Model;
-
-    };
-
-    function Model(){
-
-        this.getPrimaryStreetID = function(segmentID){
-                return W.model.segments.get(segmentID).attributes.primaryStreetID;
-                };
-
-        this.getCityID = function(primaryStreetID){
+    function extendModel(){
+        var model = wLib.Model;
+        model.getPrimaryStreetID = function(segmentID){
+            return W.model.segments.get(segmentID).attributes.primaryStreetID;
+        };
+        model.getCityID = function(primaryStreetID){
             return W.model.streets.get(primaryStreetID).cityID;
         };
-
-        this.getCityName = function(primaryStreetID){
+        model.getCityName = function(primaryStreetID){
             return W.model.cities.get(getCityID(primaryStreetID)).attributes.Name;
         };
-
-        this.getStateName = function(primaryStreetID){
-            W.model.states.get(getStateID(primaryStreetID)).Name;   
+        model.getStateName = function(primaryStreetID){
+            return W.model.states.get(getStateID(primaryStreetID)).Name;
         };
-
-        this.getStateID = function(primaryStreetID){
+        model.getStateID = function(primaryStreetID){
             return W.model.cities.get(primaryStreetID).attributes.stateID;
         };
-
-        this.getCountryID = function(primaryStreetID){
+        model.getCountryID = function(primaryStreetID){
             return W.model.cities.get(getCityID(primaryStreetID)).attributes.CountryID;
         };
-
-        this.getCountryName = function(primaryStreetID){
+        model.getCountryName = function(primaryStreetID){
             return W.model.countries.get(getCountryID(primaryStreetID)).name;
         };
-
-    };
-
-
+    }
 
 })();
