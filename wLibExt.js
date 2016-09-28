@@ -70,7 +70,7 @@ function bootstrap(tries) {
         };
 
         model.getStateName = function(primaryStreetID){
-            W.model.states.get(getStateID(primaryStreetID)).Name;   
+            return W.model.states.get(getStateID(primaryStreetID)).Name;   
         };
 
         model.getStateID = function(primaryStreetID){
