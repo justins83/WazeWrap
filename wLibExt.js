@@ -48,6 +48,26 @@ function bootstrap(tries) {
             var projE=new OpenLayers.Projection("EPSG:4326");
             return (new OpenLayers.LonLat(long, lat)).transform(projE,projI);
         };
+
+        //Converts the Longitudinal offset to an offset in 4326 gps coordinates
+        geometry.CalculateLongOffsetGPS = function(longMetersOffset, long, lat)
+        {
+            var R= 6378137; //Earth's radius
+            var dLon = longMetersOffset / (R * Math.cos(Math.PI * lat / 180)); //offset in radians
+            var lon0 = dLon * (180 / Math.PI); //offset degrees
+
+            return lon0;
+        };
+
+        //Converts the Latitudinal offset to an offset in 4326 gps coordinates
+        geometry.CalculateLatOffsetGPS = function(latMetersOffset, lat)
+        {
+            var R= 6378137; //Earth's radius
+            var dLat = latMetersOffset/R;
+            var lat0 = dLat * (180  /Math.PI); //offset degrees
+
+            return lat0;
+        };
     };
 
     function extendModel(){
@@ -86,22 +106,40 @@ function bootstrap(tries) {
         };
 
         model.getCityNameFromSegmentObj = function(segObj){
-            return getCityName(segObj.attributes.primaryStreetID);
+            return model.getCityName(segObj.attributes.primaryStreetID);
         };
 
         model.getStateNameFromSegmentObj = function(segObj){
-            return getStateName(segObj.attributes.primaryStreetID);
+            return model.getStateName(segObj.attributes.primaryStreetID);
         };
 
+        //returns an array of segmentIDs for all segments that are part of the same roundabout as the passed segment
         model.getAllRoundaboutSegmentsFromObj = function(segObj){
-            var originalSegID = segObj.model.attributes.id;
-            var RASegments = new Array;
+            if(segObj.model.attributes.junctionID === null)
+                return null;
 
-            
+            return W.model.junctions.objects[segObj.model.attributes.junctionID].segIDs;
         };
 
-        model.isRoundaboutSegment = function(segmentID){
+        model.getAllRoundaboutJunctionNodesFromObj = function(segObj){
+            var RASegs = model.getAllRoundaboutSegmentsFromObj(segObj);
+            var RAJunctionNodes = [];
+            for(i=0; i< RASegs.length; i++){
+                RAJunctionNodes.push(W.model.nodes.objects[W.model.segments.get(RASegs[i]).attributes.toNodeID]);
+
+            }
+            return RAJunctionNodes;
+        };
+
+        model.isRoundaboutSegmentID = function(segmentID){
             if(W.model.segments.get(segmentID).attributes.junctionID === null)
+                return false;
+            else
+                return true;
+        };
+
+        model.isRoundaboutSegmentObj = function(segObj){
+            if(segObj.model.attributes.junctionID === null)
                 return false;
             else
                 return true;
