@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         wLibExt
 // @namespace    
-// @version      0.1
+// @version      0.1.1
 // @description  A library to wrap the Waze API
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -10,6 +10,9 @@
 // @require      https://greasyfork.org/scripts/9794-wlib/code/wLib.js?version=106259
 // @grant        none
 // ==/UserScript==
+
+/* global W */
+/* global wLib */
 
 (function() {
     'use strict';
