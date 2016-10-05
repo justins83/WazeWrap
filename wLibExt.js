@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         wLibExt
-// @namespace    
-// @version      0.1.1
-// @description  A library to wrap the Waze API
+// @namespace    https://greasyfork.org/users/30701-justins83-waze
+// @version      0.1.2
+// @description  A library extending the wLib script, for wrapping/enhancing the WME api
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
 // @include      https://www.waze.com/*editor/*
