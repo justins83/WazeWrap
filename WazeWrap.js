@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.1.4
+// @version      0.1.6
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -12,6 +12,8 @@
 
 /* global W */
 /* global WazeWrap */
+
+var WazeWrap = {};
 
 (function() {
 
@@ -33,15 +35,11 @@
     bootstrap();
 
     function init(){
-        //extendModel();
-        //extendGeometry();
 
         var oldLib = window.WazeWrap;
-
         var root = this;
-		var WazeWrap = {};
 
-		WazeWrap.Version = "0.1.3";
+		WazeWrap.Version = "0.1.6";
 
         SetUpRequire();
 
@@ -61,6 +59,11 @@
 
 
     function SetUpRequire(){
+                if(typeof window.require !== "undefined")
+                     return;
+
+                console.log("Setting d2's require fix...");
+
 		// setup one global var and put all in
 		var WMEAPI = {};
 
@@ -205,6 +208,7 @@
 		WMEAPI.WMEHACK_Injected_script.setAttribute("type", "application/javascript");
 		WMEAPI.WMEHACK_Injected_script.src = WMEAPI.url;
 		document.body.appendChild(WMEAPI.WMEHACK_Injected_script);
+                console.log("d2 fix complete");
 	}
 
     function Geometry(){
