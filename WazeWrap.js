@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.1.6
+// @version      0.1.7
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -35,15 +35,16 @@ var WazeWrap = {};
     bootstrap();
 
     function init(){
-
+		console.log("WazeWrap initializing...");
+		
         var oldLib = window.WazeWrap;
         var root = this;
 
-		WazeWrap.Version = "0.1.6";
+		WazeWrap.Version = GM_info.script.version;
+		WazeWrap.isBetaEditor = /beta/.test(location.href);
 
         SetUpRequire();
 
-		WazeWrap.isBetaEditor = /beta/.test(location.href);
 		WazeWrap.test = "test";
         
 		WazeWrap.Geometry = new Geometry;
@@ -59,7 +60,7 @@ var WazeWrap = {};
 
 
     function SetUpRequire(){
-                if(typeof window.require !== "undefined")
+                if(this.isBetaEditor || typeof window.require !== "undefined")
                      return;
 
                 console.log("Setting d2's require fix...");
