@@ -248,20 +248,43 @@ var WazeWrap = {};
             return lat0;
         };
 		
+		/**
+		 * Checks if the given geometry is on screen
+         * @function WazeWrap.Geometry.isGeometryInMapExtent
+         * @param {OpenLayers.Geometry} Geometry to check if any part of is in the current viewport
+         */
 		this.isLonLatInMapExtent = function (lonLat) {
             'use strict';
             return lonLat && W.map.getExtent().containsLonLat(lonLat);
         };
 		
+		/**
+		 * Checks if the given geometry is on screen
+         * @function WazeWrap.Geometry.isGeometryInMapExtent
+         * @param {OpenLayers.Geometry} Geometry to check if any part of is in the current viewport
+         */
 		this.isGeometryInMapExtent = function (geometry) {
             'use strict';
             return geometry && geometry.getBounds &&
                 W.map.getExtent().intersectsBounds(geometry.getBounds());
         };
+		
+		/**
+		 * Calculates the distance between two given points
+         * @function WazeWrap.Geometry.calculateDistance
+         * @param {OpenLayers.Geometry.Point} An array of OL.Geometry.Point with which to measure the total distance. A minimum of 2 points is needed.
+         */
+		this.calculateDistance = function(pointArray) {
+			if(pointArray.length < 2)
+				return 0;
+
+			var line = new OpenLayers.Geometry.LineString(pointArray);
+			length = line.getGeodesicLength(W.map.getProjectionObject());
+			return length; //multiply by 3.28084 to convert to feet
+		};
     };
 
     function Model(){
-        //var model = WazeWrap.Model;
 
         this.getPrimaryStreetID = function(segmentID){
             return W.model.segments.get(segmentID).attributes.primaryStreetID;
