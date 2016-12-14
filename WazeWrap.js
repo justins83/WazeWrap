@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.1.7
+// @version      0.1.9
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -270,7 +270,7 @@ var WazeWrap = {};
         };
 		
 		/**
-		 * Calculates the distance between two given points
+		 * Calculates the distance between two given points, returned in meters
          * @function WazeWrap.Geometry.calculateDistance
          * @param {OpenLayers.Geometry.Point} An array of OL.Geometry.Point with which to measure the total distance. A minimum of 2 points is needed.
          */
@@ -281,6 +281,29 @@ var WazeWrap = {};
 			var line = new OpenLayers.Geometry.LineString(pointArray);
 			length = line.getGeodesicLength(W.map.getProjectionObject());
 			return length; //multiply by 3.28084 to convert to feet
+		};
+		
+		this.findClosestSegment = function(mygeometry){
+			var onscreenSegments = WazeWrap.Model.getOnscreenSegments();
+			var minDistance = Infinity;
+			var closestSegment;
+			
+			for (s in onscreenSegments) {
+				if (!onscreenSegments.hasOwnProperty(s))
+					continue;
+
+				segmentType = onscreenSegments[s].attributes.roadType;
+				if (segmentType === 10 || segmentType === 3 || segmentType === 16 || segmentType === 18 || segmentType === 19) //10 ped boardwalk, 16 stairway, 18 railroad, 19 runway, 3 freeway
+					continue;
+
+				distanceToSegment = mygeometry.distanceTo(onscreenSegments[s].geometry, {details: true});
+
+				if (distanceToSegment.distance < minDistance) {
+					minDistance = distanceToSegment.distance;
+					closestSegment = onscreenSegments[s];
+				}
+			}
+			return closestSegment;
 		};
     };
 
@@ -357,6 +380,23 @@ var WazeWrap = {};
             else
                 return true;
         };
+		
+		this.getOnscreenSegments = function(){
+			var segments = W.model.segments.objects;
+			var mapExtent = W.map.getExtent();
+			var onScreenSegments = [];
+			var seg;
+
+			for (s in segments) {
+				if (!segments.hasOwnProperty(s))
+					continue;
+
+				seg = W.model.segments.get(s);
+				if (mapExtent.intersectsBounds(seg.geometry.getBounds()))
+					onScreenSegments.push(seg);
+			}
+			return onScreenSegments;
+		};
 
 /**
          * Defers execution of a callback function until the WME map and data 
