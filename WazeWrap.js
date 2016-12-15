@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.1.9
+// @version      0.1.9a
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -314,7 +314,7 @@ var WazeWrap = {};
         };
 
         this.getStreetName = function(primaryStreetID){
-            return W.model.streets.get(PrimaryStreetID).name;
+            return W.model.streets.get(primaryStreetID).name;
         };
 
         this.getCityID = function(primaryStreetID){
