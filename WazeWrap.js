@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.1.9a
+// @version      0.2
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -52,6 +52,7 @@ var WazeWrap = {};
 		WazeWrap.Interface = new Interface;
 		WazeWrap.User = new User;
 		WazeWrap.Util = new Util;
+		WazeWrap.Require = new Require;
 		
         root.WazeWrap = WazeWrap;
 
@@ -463,6 +464,228 @@ var WazeWrap = {};
 			return W.loginManager.user.isAreaManager;
 		};
 	};
+	
+	function Require(){
+		this.DragElement = function(){
+			var myDragElement = OL.Class({
+			started: !1,
+			stopDown: !0,
+			dragging: !1,
+			touch: !1,
+			last: null ,
+			start: null ,
+			lastMoveEvt: null ,
+			oldOnselectstart: null ,
+			interval: 0,
+			timeoutId: null ,
+			forced: !1,
+			active: !1,
+			initialize: function(e) {
+				this.map = e,
+				this.uniqueID = myDragElement.baseID--
+			},
+			callback: function(e, t) {
+				if (this[e])
+					return this[e].apply(this, t)
+			},
+			dragstart: function(e) {
+				e.xy = new OL.Pixel(e.clientX - this.map.viewPortDiv.offsets[0],e.clientY - this.map.viewPortDiv.offsets[1]);
+				var t = !0;
+				return this.dragging = !1,
+				(OL.Event.isLeftClick(e) || OL.Event.isSingleTouch(e)) && (this.started = !0,
+				this.start = e.xy,
+				this.last = e.xy,
+				OL.Element.addClass(this.map.viewPortDiv, "olDragDown"),
+				this.down(e),
+				this.callback("down", [e.xy]),
+				OL.Event.stop(e),
+				this.oldOnselectstart || (this.oldOnselectstart = document.onselectstart ? document.onselectstart : OL.Function.True),
+				document.onselectstart = OL.Function.False,
+				t = !this.stopDown),
+				t
+			},
+			forceStart: function() {
+				var e = arguments.length > 0 && void 0 !== arguments[0] && arguments[0];
+				return this.started = !0,
+				this.endOnMouseUp = e,
+				this.forced = !0,
+				this.last = {
+					x: 0,
+					y: 0
+				},
+				this.callback("force")
+			},
+			forceEnd: function() {
+				if (this.forced)
+					return this.endDrag()
+			},
+			dragmove: function(e) {
+				return this.map.viewPortDiv.offsets && (e.xy = new OL.Pixel(e.clientX - this.map.viewPortDiv.offsets[0],e.clientY - this.map.viewPortDiv.offsets[1])),
+				this.lastMoveEvt = e,
+				!this.started || this.timeoutId || e.xy.x === this.last.x && e.xy.y === this.last.y || (this.interval > 0 && (this.timeoutId = window.setTimeout(OL.Function.bind(this.removeTimeout, this), this.interval)),
+				this.dragging = !0,
+				this.move(e),
+				this.oldOnselectstart || (this.oldOnselectstart = document.onselectstart,
+				document.onselectstart = OL.Function.False),
+				this.last = e.xy),
+				!0
+			},
+			dragend: function(e) {
+				if (e.xy = new OL.Pixel(e.clientX - this.map.viewPortDiv.offsets[0],e.clientY - this.map.viewPortDiv.offsets[1]),
+				this.started) {
+					var t = this.start !== this.last;
+					this.endDrag(),
+					this.up(e),
+					this.callback("up", [e.xy]),
+					t && this.callback("done", [e.xy])
+				}
+				return !0
+			},
+			endDrag: function() {
+				this.started = !1,
+				this.dragging = !1,
+				this.forced = !1,
+				OL.Element.removeClass(this.map.viewPortDiv, "olDragDown"),
+				document.onselectstart = this.oldOnselectstart
+			},
+			down: function(e) {},
+			move: function(e) {},
+			up: function(e) {},
+			out: function(e) {},
+			mousedown: function(e) {
+				return this.dragstart(e)
+			},
+			touchstart: function(e) {
+				return this.touch || (this.touch = !0,
+				this.map.events.un({
+					mousedown: this.mousedown,
+					mouseup: this.mouseup,
+					mousemove: this.mousemove,
+					click: this.click,
+					scope: this
+				})),
+				this.dragstart(e)
+			},
+			mousemove: function(e) {
+				return this.dragmove(e)
+			},
+			touchmove: function(e) {
+				return this.dragmove(e)
+			},
+			removeTimeout: function() {
+				if (this.timeoutId = null ,
+				this.dragging)
+					return this.mousemove(this.lastMoveEvt)
+			},
+			mouseup: function(e) {
+				if (!this.forced || this.endOnMouseUp)
+					return this.started ? this.dragend(e) : void 0
+			},
+			touchend: function(e) {
+				if (e.xy = this.last,
+				!this.forced)
+					return this.dragend(e)
+			},
+			click: function(e) {
+				return this.start === this.last
+			},
+			activate: function(e) {
+				this.$el = e,
+				this.active = !0;
+				var t = $(this.map.viewPortDiv);
+				return this.$el.on("mousedown.drag-" + this.uniqueID, $.proxy(this.mousedown, this)),
+				this.$el.on("touchstart.drag-" + this.uniqueID, $.proxy(this.touchstart, this)),
+				$(document).on("mouseup.drag-" + this.uniqueID, $.proxy(this.mouseup, this)),
+				t.on("mousemove.drag-" + this.uniqueID, $.proxy(this.mousemove, this)),
+				t.on("touchmove.drag-" + this.uniqueID, $.proxy(this.touchmove, this)),
+				t.on("touchend.drag-" + this.uniqueID, $.proxy(this.touchend, this))
+			},
+			deactivate: function() {
+				return this.active = !1,
+				this.$el.off(".drag-" + this.uniqueID),
+				$(this.map.viewPortDiv).off(".drag-" + this.uniqueID),
+				$(document).off(".drag-" + this.uniqueID),
+				this.touch = !1,
+				this.started = !1,
+				this.forced = !1,
+				this.dragging = !1,
+				this.start = null ,
+				this.last = null ,
+				OL.Element.removeClass(this.map.viewPortDiv, "olDragDown")
+			},
+			adjustXY: function(e) {
+				var t = OL.Util.pagePosition(this.map.viewPortDiv);
+				return e.xy.x -= t[0],
+				e.xy.y -= t[1]
+			},
+			CLASS_NAME: "W.Handler.DragElement"
+			});
+                 myDragElement.baseID = 0;
+				 return myDragElement;
+		 };
+	
+		this.DivIcon = OpenLayers.Class({
+			className: null ,
+			$div: null ,
+			events: null ,
+			initialize: function(e, t) {
+				this.className = e,
+					this.moveWithTransform = !!t,
+					this.$div = $("<div />").addClass(e),
+					this.div = this.$div.get(0),
+					this.imageDiv = this.$div.get(0);
+			},
+			destroy: function() {
+				this.erase(),
+					this.$div = null;
+			},
+			clone: function() {
+				return new i(this.className);
+			},
+			draw: function(e) {
+				return this.moveWithTransform ? (this.$div.css({
+					transform: "translate(" + e.x + "px, " + e.y + "px)"
+				}),
+												 this.$div.css({
+					position: "absolute"
+				})) : this.$div.css({
+					position: "absolute",
+					left: e.x,
+					top: e.y
+				}),
+					this.$div.get(0);
+			},
+			moveTo: function(e) {
+				null !== e && (this.px = e),
+					null === this.px ? this.display(!1) : this.moveWithTransform ? this.$div.css({
+					transform: "translate(" + this.px.x + "px, " + this.px.y + "px)"
+				}) : this.$div.css({
+					left: this.px.x,
+					top: this.px.y
+				});
+			},
+			erase: function() {
+				this.$div.remove();
+			},
+			display: function(e) {
+				this.$div.toggle(e);
+			},
+			isDrawn: function() {
+				return !!this.$div.parent().length;
+			},
+			bringToFront: function() {
+				if (this.isDrawn()) {
+					var e = this.$div.parent();
+					this.$div.detach().appendTo(e);
+				}
+			},
+			forceReflow: function() {
+				return this.$div.get(0).offsetWidth;
+			},
+			CLASS_NAME: "Waze.DivIcon"
+		});
+	};
+	
 	
 	function Util(){
 		/**
