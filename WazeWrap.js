@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.2
+// @version      0.2.4
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -22,7 +22,7 @@ var WazeWrap = {};
 		if (window.W &&
 			window.W.map &&
 			window.W.model &&
-			window.W.loginManager &&
+			window.W.loginManager.user &&
 			$) {
 			init();
 		} else if (tries < 1000) {
@@ -284,7 +284,7 @@ var WazeWrap = {};
 			return length; //multiply by 3.28084 to convert to feet
 		};
 		
-		this.findClosestSegment = function(mygeometry){
+		this.findClosestSegment = function(mygeometry, ignorePLR, ignoreUnnamedPR){
 			var onscreenSegments = WazeWrap.Model.getOnscreenSegments();
 			var minDistance = Infinity;
 			var closestSegment;
@@ -294,8 +294,17 @@ var WazeWrap = {};
 					continue;
 
 				segmentType = onscreenSegments[s].attributes.roadType;
-				if (segmentType === 10 || segmentType === 3 || segmentType === 16 || segmentType === 18 || segmentType === 19) //10 ped boardwalk, 16 stairway, 18 railroad, 19 runway, 3 freeway
+				if (segmentType === 10 || segmentType === 3 || segmentType === 16 || segmentType === 18 || segmentType === 19 || segmentType === 5) //10 ped boardwalk, 16 stairway, 18 railroad, 19 runway, 3 freeway, 5 walking trail
 					continue;
+					
+				if(ignorePLR)
+					if(segmentType === 20) //PLR
+						continue;
+
+				if(ignoreUnnamedPR)
+					if(segmentType === 17 && WazeWrap.Model.getStreetName(onscreenSegments[s].attributes.primaryStreetID) === null) //PR
+						continue;
+
 
 				distanceToSegment = mygeometry.distanceTo(onscreenSegments[s].geometry, {details: true});
 
@@ -440,6 +449,207 @@ var WazeWrap = {};
                             callback.call(context);
                         });
                 }
+            }
+        };
+		
+		/**
+         * Retrives a route from the Waze Live Map.
+         * @class
+         * @name wLib.Model.RouteSelection
+         * @param firstSegment The segment to use as the start of the route.
+         * @param lastSegment The segment to use as the destination for the route.
+         * @param {Array|Function} callback A function or array of funcitons to be 
+         * executed after the route
+         * is retrieved. 'This' in the callback functions will refer to the 
+         * RouteSelection object.
+         * @param {Object} options A hash of options for determining route. Valid 
+         * options are:
+         * fastest: {Boolean} Whether or not the fastest route should be used. 
+         * Default is false, which selects the shortest route.
+         * freeways: {Boolean} Whether or not to avoid freeways. Default is false.
+         * dirt: {Boolean} Whether or not to avoid dirt roads. Default is false.
+         * longtrails: {Boolean} Whether or not to avoid long dirt roads. Default 
+         * is false.
+         * uturns: {Boolean} Whether or not to allow U-turns. Default is true.
+         * @return {wLib.Model.RouteSelection} The new RouteSelection object.
+         * @example: // The following example will retrieve a route from the Live Map and select the segments in the route.
+         * selection = W.selectionManager.selectedItems;
+         * myRoute = new wLib.Model.RouteSelection(selection[0], selection[1], function(){this.selectRouteSegments();}, {fastest: true});
+         */
+        this.RouteSelection = function (firstSegment, lastSegment, callback, options) {
+            var i,
+                n,
+                start = this.getSegmentCenterLonLat(firstSegment),
+                end = this.getSegmentCenterLonLat(lastSegment);
+            this.options = {
+                fastest: options && options.fastest || false,
+                freeways: options && options.freeways || false,
+                dirt: options && options.dirt || false,
+                longtrails: options && options.longtrails || false,
+                uturns: options && options.uturns || true
+            };
+            this.requestData = {
+                from: 'x:' + start.x + ' y:' + start.y + ' bd:true',
+                to: 'x:' + end.x + ' y:' + end.y + ' bd:true',
+                returnJSON: true,
+                returnGeometries: true,
+                returnInstructions: false,
+                type: this.options.fastest ? 'HISTORIC_TIME' : 'DISTANCE',
+                clientVersion: '4.0.0',
+                timeout: 60000,
+                nPaths: 3,
+                options: this.setRequestOptions(this.options)
+            };
+            this.callbacks = [];
+            if (callback) {
+                if (!(callback instanceof Array)) {
+                    callback = [callback];
+                }
+                for (i = 0, n = callback.length; i < n; i++) {
+                    if ('function' === typeof callback[i]) {
+                        this.callbacks.push(callback[i]);
+                    }
+                }
+            }
+            this.routeData = null;
+            this.getRouteData();
+        };
+
+		this.RouteSelection.prototype = 
+            /** @lends wLib.Model.RouteSelection.prototype */ {
+                
+            /**
+             * Formats the routing options string for the ajax request.
+             * @private
+             * @param {Object} options Object containing the routing options.
+             * @return {String} String containing routing options.
+             */
+            setRequestOptions: function (options) {
+                return 'AVOID_TOLL_ROADS:' + (options.tolls ? 't' : 'f') + ',' +
+                    'AVOID_PRIMARIES:' + (options.freeways ? 't' : 'f') + ',' +
+                    'AVOID_TRAILS:' + (options.dirt ? 't' : 'f') + ',' +
+                    'AVOID_LONG_TRAILS:' + (options.longtrails ? 't' : 'f') + ',' +
+                    'ALLOW_UTURNS:' + (options.uturns ? 't' : 'f');
+            },
+            
+            /**
+             * Gets the center of a segment in LonLat form.
+             * @private
+             * @param segment A Waze model segment object.
+             * @return {OpenLayers.LonLat} The LonLat object corresponding to the
+             * center of the segment.
+             */
+            getSegmentCenterLonLat: function (segment) {
+                var x, y, componentsLength, midPoint;
+                if (segment) {
+                    componentsLength = segment.geometry.components.length;
+                    midPoint = Math.floor(componentsLength / 2);
+                    if (componentsLength % 2 === 1) {
+                        x = segment.geometry.components[midPoint].x;
+                        y = segment.geometry.components[midPoint].y;
+                    } else {
+                        x = (segment.geometry.components[midPoint - 1].x +
+                            segment.geometry.components[midPoint].x) / 2;
+                        y = (segment.geometry.components[midPoint - 1].y +
+                            segment.geometry.components[midPoint].y) / 2;
+                    }
+                    return new OL.Geometry.Point(x, y).
+                        transform(W.map.getProjectionObject(), 'EPSG:4326');
+                }
+
+            },
+            
+            /**
+             * Gets the route from Live Map and executes any callbacks upon success.
+             * @private
+             * @returns The ajax request object. The responseJSON property of the 
+             * returned object
+             * contains the route information.
+             *
+             */
+            getRouteData: function () {
+                var i,
+                    n,
+                    that = this;
+                return $.ajax({
+                    dataType: 'json',
+                    url: this.getURL(),
+                    data: this.requestData,
+                    dataFilter: function (data, dataType) {
+                        return data.replace(/NaN/g, '0');
+                    },
+                    success: function (data) {
+                        that.routeData = data;
+                        for (i = 0, n = that.callbacks.length; i < n; i++) {
+                            that.callbacks[i].call(that);
+                        }
+                    }
+                });
+            },
+            
+            /**
+             * Extracts the IDs from all segments on the route.
+             * @private
+             * @return {Array} Array containing an array of segment IDs for
+             * each route alternative.
+             */
+            getRouteSegmentIDs: function () {
+                var i, j, route, len1, len2, segIDs = [],
+                    routeArray = [],
+                    data = this.routeData;
+                if ('undefined' !== typeof data.alternatives) {
+                    for (i = 0, len1 = data.alternatives.length; i < len1; i++) {
+                        route = data.alternatives[i].response.results;
+                        for (j = 0, len2 = route.length; j < len2; j++) {
+                            routeArray.push(route[j].path.segmentId);
+                        }
+                        segIDs.push(routeArray);
+                        routeArray = [];
+                    }
+                } else {
+                    route = data.response.results;
+                    for (i = 0, len1 = route.length; i < len1; i++) {
+                        routeArray.push(route[i].path.segmentId);
+                    }
+                    segIDs.push(routeArray);
+                }
+                return segIDs;
+            },
+            
+            /**
+             * Gets the URL to use for the ajax request based on country.
+             * @private
+             * @return {String} Relative URl to use for route ajax request.
+             */
+            getURL: function () {
+                if (W.model.countries.get(235) || W.model.countries.get(40)) {
+                    return '/RoutingManager/routingRequest';
+                } else if (W.model.countries.get(106)) {
+                    return '/il-RoutingManager/routingRequest';
+                } else {
+                    return '/row-RoutingManager/routingRequest';
+                }
+            },
+            
+            /**
+             * Selects all segments on the route in the editor.
+             * @param {Integer} routeIndex The index of the alternate route.
+             * Default route to use is the first one, which is 0.
+             */
+            selectRouteSegments: function (routeIndex) {
+                var i, n, seg,
+                    segIDs = this.getRouteSegmentIDs()[Math.floor(routeIndex) || 0],
+                    segments = [];
+                if ('undefined' === typeof segIDs) {
+                    return;
+                }
+                for (i = 0, n = segIDs.length; i < n; i++) {
+                    seg = W.model.segments.get(segIDs[i]);
+                    if ('undefined' !== seg) {
+                        segments.push(seg);
+                    }
+                }
+                return W.selectionManager.select(segments);
             }
         };
     };
@@ -770,7 +980,9 @@ var WazeWrap = {};
 		
         this.Shortcut = OL.Class(this, /** @lends WazeWrap.Interface.Shortcut.prototype */ {
             name: null,
+            desc: null,
             group: null,
+            title: null,
             shortcut: {},
             callback: null,
             scope: null,
@@ -786,7 +998,9 @@ var WazeWrap = {};
              * @class
              * @name WazeWrap.Interface.Shortcut
              * @param name {String} The name of the shortcut.
+             * @param desc {String} The description to display for the shortcut
              * @param group {String} The name of the shortcut group.
+             * @param title {String} The title to display for this group in the Keyboard shortcuts list
              * @param shortcut {String} The shortcut key(s). The shortcut  
              * should be of the form 'i' where i is the keyboard shortuct or 
              * include modifier keys  such as 'CSA+i', where C = the control 
@@ -800,12 +1014,14 @@ var WazeWrap = {};
              * @example //Creates new shortcut and adds it to the map.
              * shortcut = new WazeWrap.Interface.Shortcut('myName', 'myGroup', 'C+p', callbackFunc, null).add();
              */
-            initialize: function (name, group, shortcut, callback, scope) {
+            initialize: function (name, desc, group, title, shortcut, callback, scope) {
                 if ('string' === typeof name && name.length > 0 &&
                     'string' === typeof shortcut && shortcut.length > 0 &&
                     'function' === typeof callback) {
                     this.name = name;
+                    this.desc = desc;
                     this.group = group || this.defaults.group;
+                    this.title = title;
                     this.callback = callback;
                     this.shortcut[shortcut] = name;
                     if ('object' !== typeof scope) {
@@ -823,8 +1039,7 @@ var WazeWrap = {};
             */
             doesGroupExist: function () {
                 this.groupExists = 'undefined' !== typeof W.accelerators.Groups[this.group] &&
-                undefined !== typeof W.accelerators.Groups[this.group].members &&
-                W.accelerators.Groups[this.group].length > 0;
+                undefined !== typeof W.accelerators.Groups[this.group].members;
                 return this.groupExists;
             },
                 
@@ -856,6 +1071,11 @@ var WazeWrap = {};
             createGroup: function () {
                 W.accelerators.Groups[this.group] = [];
                 W.accelerators.Groups[this.group].members = [];
+                if(this.title && !I18n.translations.en.keyboard_shortcuts.groups[this.group]){
+                    I18n.translations.en.keyboard_shortcuts.groups[this.group] = [];
+                    I18n.translations.en.keyboard_shortcuts.groups[this.group].description = this.title;
+                    I18n.translations.en.keyboard_shortcuts.groups[this.group].members = [];
+                }
             },
                 
             /**
@@ -863,6 +1083,8 @@ var WazeWrap = {};
             * @private
             */
             addAction: function () {
+                if(this.title)
+                    I18n.translations.en.keyboard_shortcuts.groups[this.group].members[this.name] = this.desc;
                 W.accelerators.addAction(this.name, { group: this.group });
             },
                 
