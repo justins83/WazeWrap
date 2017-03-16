@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.2.8
+// @version      0.2.8.1
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -1275,41 +1275,6 @@ var WazeWrap = {};
                 var isParentChecked = (typeof sessionStorage[groupClass] == "undefined" ? true : sessionStorage[groupClass]=='true');
                 CreateParentGroup(isParentChecked);  //create the group
                 sessionStorage[groupClass] = isParentChecked;
-
-                Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){ //make it reappear after changing modes
-                    CreateParentGroup((sessionStorage[groupClass]=='true'));
-                });
-            }
-
-        var buildLayerItem = function(isChecked){
-            var groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
-            $li = $('<li>');
-            $li.html([
-                '<div class="controls-container toggler">',
-                '<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
-                '<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
-                '</div>',
-            ].join(' '));
-
-            groupChildren.append($li);
-            $('#' + checkboxID).prop('checked', isChecked);
-            $('#' + checkboxID).change(function(){callback(this.checked); sessionStorage[normalizedText] = this.checked;});
-            if(!$('#' + groupClass).is(':checked')){
-                $('#' + checkboxID).prop('disabled', true);
-                callback(false);
-            }
-
-            $('#' + groupClass).change(function(){$('#' + checkboxID).prop('disabled', !this.checked); callback(this.checked);});
-        };
-
-
-        Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){
-            buildLayerItem((sessionStorage[normalizedText]=='true'));
-        });
-
-        buildLayerItem(checked);
-                CreateParentGroup((typeof sessionStorage[groupClass] == "undefined" ? true : sessionStorage[groupClass]=='true'));  //create the group
-                sessionStorage[groupClass] = true;
 
                 Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){ //make it reappear after changing modes
                     CreateParentGroup((sessionStorage[groupClass]=='true'));
