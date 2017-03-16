@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         WazeWrap
+// @name         WazeWrap Beta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.2.6
+// @version      0.2.6b
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -11,9 +11,8 @@
 // ==/UserScript==
 
 /* global W */
-/* global WazeWrap */
-
-var WazeWrap = {};
+/* global WazeWrapBeta */
+var WazeWrapBeta = {};
 
 (function() {
 
@@ -37,26 +36,26 @@ var WazeWrap = {};
     function init(){
 		console.log("WazeWrap initializing...");
 		
-        var oldLib = window.WazeWrap;
+        var oldLib = window.WazeWrapBeta;
         var root = this;
 
-		WazeWrap.Version = GM_info.script.version;
-		WazeWrap.isBetaEditor = /beta/.test(location.href);
+		WazeWrapBeta.Version = GM_info.script.version;
+		WazeWrapBeta.isBetaEditor = /beta/.test(location.href);
 
         //SetUpRequire();
 
-		WazeWrap.test = "test";
+		WazeWrapBeta.test = "test";
         
-		WazeWrap.Geometry = new Geometry;
-		WazeWrap.Model = new Model;
-		WazeWrap.Interface = new Interface;
-		WazeWrap.User = new User;
-		WazeWrap.Util = new Util;
-		WazeWrap.Require = new Require;
+		WazeWrapBeta.Geometry = new Geometry;
+		WazeWrapBeta.Model = new Model;
+		WazeWrapBeta.Interface = new Interface;
+		WazeWrapBeta.User = new User;
+		WazeWrapBeta.Util = new Util;
+		WazeWrapBeta.Require = new Require;
 		
-        root.WazeWrap = WazeWrap;
+        root.WazeWrapBeta = WazeWrapBeta;
 
-        console.log('WazeWrap Loaded');
+        console.log('WazeWrapBeta Loaded');
     };
 
 
@@ -214,7 +213,7 @@ var WazeWrap = {};
 	}
 
     function Geometry(){
-        //var geometry = WazeWrap.Geometry;
+        //var geometry = WazeWrapBeta.Geometry;
 
         //Converts to "normal" GPS coordinates
         this.ConvertTo4326 = function (long, lat){
@@ -251,7 +250,7 @@ var WazeWrap = {};
 		
 		/**
 		 * Checks if the given geometry is on screen
-         * @function WazeWrap.Geometry.isGeometryInMapExtent
+         * @function WazeWrapBeta.Geometry.isGeometryInMapExtent
          * @param {OpenLayers.Geometry} Geometry to check if any part of is in the current viewport
          */
 		this.isLonLatInMapExtent = function (lonLat) {
@@ -261,7 +260,7 @@ var WazeWrap = {};
 		
 		/**
 		 * Checks if the given geometry is on screen
-         * @function WazeWrap.Geometry.isGeometryInMapExtent
+         * @function WazeWrapBeta.Geometry.isGeometryInMapExtent
          * @param {OpenLayers.Geometry} Geometry to check if any part of is in the current viewport
          */
 		this.isGeometryInMapExtent = function (geometry) {
@@ -272,7 +271,7 @@ var WazeWrap = {};
 		
 		/**
 		 * Calculates the distance between two given points, returned in meters
-         * @function WazeWrap.Geometry.calculateDistance
+         * @function WazeWrapBeta.Geometry.calculateDistance
          * @param {OpenLayers.Geometry.Point} An array of OL.Geometry.Point with which to measure the total distance. A minimum of 2 points is needed.
          */
 		this.calculateDistance = function(pointArray) {
@@ -285,7 +284,7 @@ var WazeWrap = {};
 		};
 		
 		this.findClosestSegment = function(mygeometry, ignorePLR, ignoreUnnamedPR){
-			var onscreenSegments = WazeWrap.Model.getOnscreenSegments();
+			var onscreenSegments = WazeWrapBeta.Model.getOnscreenSegments();
 			var minDistance = Infinity;
 			var closestSegment;
 			
@@ -302,7 +301,7 @@ var WazeWrap = {};
 						continue;
 
 				if(ignoreUnnamedPR)
-					if(segmentType === 17 && WazeWrap.Model.getStreetName(onscreenSegments[s].attributes.primaryStreetID) === null) //PR
+					if(segmentType === 17 && WazeWrapBeta.Model.getStreetName(onscreenSegments[s].attributes.primaryStreetID) === null) //PR
 						continue;
 
 
@@ -413,7 +412,7 @@ var WazeWrap = {};
          * model are ready. Call this function before calling a function that 
          * causes a map and model reload, such as W.map.moveTo(). After the 
          * move is completed the callback function will be executed.
-         * @function WazeWrap.Model.onModelReady
+         * @function WazeWrapBeta.Model.onModelReady
          * @param {Function} callback The callback function to be executed.
          * @param {Boolean} now Whether or not to call the callback now if the
          * model is currently ready.
@@ -441,7 +440,7 @@ var WazeWrap = {};
 
             if (typeof callback === 'function') {
                 context = context || callback;
-                if (now && WazeWrap.Util.mapReady() && WazeWrap.Util.modelReady()) {
+                if (now && WazeWrapBeta.Util.mapReady() && WazeWrapBeta.Util.modelReady()) {
                     callback.call(context);
                 } else {
                     $.when(deferMapReady() && deferModelReady()).
@@ -901,7 +900,7 @@ var WazeWrap = {};
 		/**
          * Function to defer function execution until an element is present on 
          * the page.
-         * @function WazeWrap.Util.waitForElement
+         * @function WazeWrapBeta.Util.waitForElement
          * @param {String} selector The CSS selector string or a jQuery object 
          * to find before executing the callback.
          * @param {Function} callback The function to call when the page 
@@ -920,7 +919,7 @@ var WazeWrap = {};
 
             if (!jqObj.size()) {
                 window.requestAnimationFrame(function () {
-                    WazeWrap.Util.waitForElement(selector, callback, context);
+                    WazeWrapBeta.Util.waitForElement(selector, callback, context);
                 });
             } else {
                 callback.call(context || callback);
@@ -929,7 +928,7 @@ var WazeWrap = {};
 
          /**
          * Function to track the ready state of the map.
-         * @function WazeWrap.Util.mapReady
+         * @function WazeWrapBeta.Util.mapReady
          * @return {Boolean} Whether or not a map operation is pending or 
          * undefined if the function has not yet seen a map ready event fired.
          */
@@ -948,7 +947,7 @@ var WazeWrap = {};
 
          /**
          * Function to track the ready state of the model.
-         * @function WazeWrap.Util.modelReady
+         * @function WazeWrapBeta.Util.modelReady
          * @return {Boolean} Whether or not the model has loaded objects or 
          * undefined if the function has not yet seen a model ready event fired.
          */
@@ -978,7 +977,7 @@ var WazeWrap = {};
             };
         } ();
 		
-        this.Shortcut = OL.Class(this, /** @lends WazeWrap.Interface.Shortcut.prototype */ {
+        this.Shortcut = OL.Class(this, /** @lends WazeWrapBeta.Interface.Shortcut.prototype */ {
             name: null,
             desc: null,
             group: null,
@@ -994,9 +993,9 @@ var WazeWrap = {};
             },
                 
             /**
-             * Creates a new {WazeWrap.Interface.Shortcut}.
+             * Creates a new {WazeWrapBeta.Interface.Shortcut}.
              * @class
-             * @name WazeWrap.Interface.Shortcut
+             * @name WazeWrapBeta.Interface.Shortcut
              * @param name {String} The name of the shortcut.
              * @param desc {String} The description to display for the shortcut
              * @param group {String} The name of the shortcut group.
@@ -1010,13 +1009,13 @@ var WazeWrap = {};
              * shortcut.
              * @param scope {Object} The object to be used as this by the 
              * callback.
-             * @return {WazeWrap.Interface.Shortcut} The new shortcut object.
+             * @return {WazeWrapBeta.Interface.Shortcut} The new shortcut object.
              * @example //Creates new shortcut and adds it to the map.
-             * shortcut = new WazeWrap.Interface.Shortcut('myName', 'myGroup', 'C+p', callbackFunc, null).add();
+             * shortcut = new WazeWrapBeta.Interface.Shortcut('myName', 'myGroup', 'C+p', callbackFunc, null).add();
              */
             initialize: function (name, desc, group, title, shortcut, callback, scope) {
                 if ('string' === typeof name && name.length > 0 &&
-                    'string' === typeof shortcut &&
+                    'string' === typeof shortcut  &&
                     'function' === typeof callback) {
                     this.name = name;
                     this.desc = desc;
@@ -1106,7 +1105,7 @@ var WazeWrap = {};
                 
             /**
             * Adds the keyboard shortcut to the map.
-            * @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
+            * @return {WazeWrapBeta.Interface.Shortcut} The keyboard shortcut.
             */
             add: function () {
                 /* If the group is not already defined, initialize the group. */
@@ -1132,7 +1131,7 @@ var WazeWrap = {};
                 
             /**
             * Removes the keyboard shortcut from the map.
-            * @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
+            * @return {WazeWrapBeta.Interface.Shortcut} The keyboard shortcut.
             */
             remove: function () {
                 if (this.doesEventExist()) {
@@ -1147,7 +1146,7 @@ var WazeWrap = {};
                 
             /**
             * Changes the keyboard shortcut and applies changes to the map.
-            * @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
+            * @return {WazeWrapBeta.Interface.Shortcut} The keyboard shortcut.
             */
             change: function (shortcut) {
                 if (shortcut) {
@@ -1160,7 +1159,7 @@ var WazeWrap = {};
         }),
 
 		this.Tab = OL.Class(this, {
-            /** @lends WazeWrap.Interface.Tab */
+            /** @lends WazeWrapBeta.Interface.Tab */
             TAB_SELECTOR: '#user-tabs ul.nav-tabs',
             CONTENT_SELECTOR: '#user-info div.tab-content',
             callback: null,
@@ -1169,10 +1168,10 @@ var WazeWrap = {};
             $tab: null,
             
             /**
-             * Creates a new WazeWrap.Interface.Tab. The tab is appended to the WME 
+             * Creates a new WazeWrapBeta.Interface.Tab. The tab is appended to the WME 
              * editor sidebar and contains the passed HTML content.
              * @class
-             * @name WazeWrap.Interface.Tab
+             * @name WazeWrapBeta.Interface.Tab
              * @param {String} name The name of the tab. Should not contain any 
              * special characters.
              * @param {String} content The HTML content of the tab.
@@ -1180,9 +1179,9 @@ var WazeWrap = {};
              * appending the tab.
              * @param {Object} [context] The context in which to call the callback 
              * function.
-                     * @return {WazeWrap.Interface.Tab} The new tab object.
+                     * @return {WazeWrapBeta.Interface.Tab} The new tab object.
              * @example //Creates new tab and adds it to the page.
-             * new WazeWrap.Interface.Tab('thebestscriptever', '<div>Hello World!</div>');
+             * new WazeWrapBeta.Interface.Tab('thebestscriptever', '<div>Hello World!</div>');
              */
             initialize: function (name, content, callback, context) {
                 var idName, i = 0;
@@ -1224,7 +1223,7 @@ var WazeWrap = {};
             },
 
             appendTab: function () {
-                WazeWrap.Util.waitForElement(
+                WazeWrapBeta.Util.waitForElement(
                     this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
                     function () {
                         $(this.TAB_SELECTOR).append(this.$tab);
@@ -1245,25 +1244,39 @@ var WazeWrap = {};
             }
         });
 
-		this.AddLayerCheckbox = function(group, checkboxText, checked, callback){
-			var groupPrefix = 'layer-switcher-group_';
-			var groupClass = groupPrefix + group.toLowerCase();
-			var checkboxID = "layer-switcher-item_" + checkboxText.toLowerCase().replace(/\s/g, '_');
-			//W.app.on('change:mode', createLayerCheckbox)
-			var groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
-			$li = $('<li>');
-			$li.html([
-			'<div class="controls-container toggler">',
-			'<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
-			'<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
-			'</div>',
-			].join(' '));
-			
-			groupChildren.append($li);
-			$('#' + checkboxID).prop('checked', checked);
-			$('#' + checkboxID).change(function(){callback(this.checked);});
-			
-			$('.' + groupClass).change(function(){$('#' + checkboxID).prop('disabled', !this.checked); callback(this.checked);});
+this.AddLayerCheckbox = function(group, checkboxText, checked, callback){
+			var normalizedText = checkboxText.toLowerCase().replace(/\s/g, '_');
+			var checkboxID = "layer-switcher-item_" + normalizedText;
+                        sessionStorage[normalizedText] = checked;
+
+			var buildLayerItem = function(isChecked){
+				var groupPrefix = 'layer-switcher-group_';
+				var groupClass = groupPrefix + group.toLowerCase();
+				//W.app.on('change:mode', createLayerCheckbox)
+				var groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
+				$li = $('<li>');
+				$li.html([
+				'<div class="controls-container toggler">',
+				'<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
+				'<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
+				'</div>',
+				].join(' '));
+				
+				groupChildren.append($li);
+				$('#' + checkboxID).prop('checked', isChecked);
+				$('#' + checkboxID).change(function(){callback(this.checked); sessionStorage[normalizedText] = this.checked;});
+				
+				$('.' + groupClass).change(function(){$('#' + checkboxID).prop('disabled', !this.checked); callback(this.checked);});
+			}
+
+
+			Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){
+console.log("Justin1");
+console.log(normalizedText);
+				buildLayerItem((sessionStorage[normalizedText]=='true'));
+			});
+
+			buildLayerItem(checked);
 		};
 	};
 
