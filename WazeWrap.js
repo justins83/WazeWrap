@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.2.6
+// @version      0.2.7
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -1246,24 +1246,35 @@ var WazeWrap = {};
         });
 
 		this.AddLayerCheckbox = function(group, checkboxText, checked, callback){
-			var groupPrefix = 'layer-switcher-group_';
-			var groupClass = groupPrefix + group.toLowerCase();
-			var checkboxID = "layer-switcher-item_" + checkboxText.toLowerCase().replace(/\s/g, '_');
-			//W.app.on('change:mode', createLayerCheckbox)
-			var groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
-			$li = $('<li>');
-			$li.html([
-			'<div class="controls-container toggler">',
-			'<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
-			'<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
-			'</div>',
-			].join(' '));
-			
-			groupChildren.append($li);
-			$('#' + checkboxID).prop('checked', checked);
-			$('#' + checkboxID).change(function(){callback(this.checked);});
-			
-			$('.' + groupClass).change(function(){$('#' + checkboxID).prop('disabled', !this.checked); callback(this.checked);});
+			var normalizedText = checkboxText.toLowerCase().replace(/\s/g, '_');
+			var checkboxID = "layer-switcher-item_" + normalizedText;
+                        sessionStorage[normalizedText] = checked;
+
+			var buildLayerItem = function(isChecked){
+				var groupPrefix = 'layer-switcher-group_';
+				var groupClass = groupPrefix + group.toLowerCase();
+				var groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
+				$li = $('<li>');
+				$li.html([
+				'<div class="controls-container toggler">',
+				'<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
+				'<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
+				'</div>',
+				].join(' '));
+				
+				groupChildren.append($li);
+				$('#' + checkboxID).prop('checked', isChecked);
+				$('#' + checkboxID).change(function(){callback(this.checked); sessionStorage[normalizedText] = this.checked;});
+				
+				$('.' + groupClass).change(function(){$('#' + checkboxID).prop('disabled', !this.checked); callback(this.checked);});
+			}
+
+
+			Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){
+				buildLayerItem((sessionStorage[normalizedText]=='true'));
+			});
+
+			buildLayerItem(checked);
 		};
 	};
 
