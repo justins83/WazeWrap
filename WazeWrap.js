@@ -1343,26 +1343,6 @@ var WazeWrap = {};
         });
 
         buildLayerItem(checked);
-                '<div class="controls-container toggler">',
-                '<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
-                '<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
-                '</div>',
-            ].join(' '));
-
-            groupChildren.append($li);
-            $('#' + checkboxID).prop('checked', isChecked);
-            $('#' + checkboxID).change(function(){callback(this.checked); sessionStorage[normalizedText] = this.checked;});
-            $('#' + checkboxID).prop('disabled', !$('#' + groupClass).is(':checked'));
-
-            $('#' + groupClass).change(function(){$('#' + checkboxID).prop('disabled', !this.checked); callback(this.checked);});
-        };
-
-
-        Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){
-            buildLayerItem((sessionStorage[normalizedText]=='true'));
-        });
-
-        buildLayerItem(checked);
 		};
 	};
 
