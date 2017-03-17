@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.2.8.2
+// @version      0.2.8.3
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -1309,5 +1309,5 @@ var WazeWrap = {};
 
         buildLayerItem(checked);
 	};
-
+    };
 }.call(this));
