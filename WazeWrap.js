@@ -1311,11 +1311,11 @@ var WazeWrap = {};
         buildLayerItem(checked);
 	};
     };
-	this.String = function(){
+	function String(){
 		this.toTitleCase = function(){
 			return str.replace(/(?:^|\s)\w/g, function(match) {
 				return match.toUpperCase();
-				};
+			});
 		};
-    	});
+	};
 }.call(this));
