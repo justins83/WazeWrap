@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap Beta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.2.9b1
+// @version      0.2.9.b2
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -12,6 +12,7 @@
 
 /* global W */
 /* global WazeWrap */
+
 var WazeWrap = {};
 
 (function() {
@@ -965,14 +966,6 @@ var WazeWrap = {};
             };
         } ();
 	};
-	function String(){
-
-        //Converts the passed string to title case: "the quick brown fox" turns into: "The Quick Brown Fox"
-        this.toTitleCase = function (str){
-            return str.replace(/(?:^|\s)\w/g, function(match) {
-		    return match.toUpperCase();
-	    });
-	};
 
     function Interface() {
         /**
@@ -1024,7 +1017,7 @@ var WazeWrap = {};
              */
             initialize: function (name, desc, group, title, shortcut, callback, scope) {
                 if ('string' === typeof name && name.length > 0 &&
-                    'string' === typeof shortcut  &&
+                    'string' === typeof shortcut &&
                     'function' === typeof callback) {
                     this.name = name;
                     this.desc = desc;
@@ -1080,9 +1073,9 @@ var WazeWrap = {};
                 W.accelerators.Groups[this.group] = [];
                 W.accelerators.Groups[this.group].members = [];
                 if(this.title && !I18n.translations.en.keyboard_shortcuts.groups[this.group]){
-                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group] = [];
-                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].description = this.title;
-                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members = [];
+                    I18n.translations.en.keyboard_shortcuts.groups[this.group] = [];
+                    I18n.translations.en.keyboard_shortcuts.groups[this.group].description = this.title;
+                    I18n.translations.en.keyboard_shortcuts.groups[this.group].members = [];
                 }
             },
                 
@@ -1092,7 +1085,7 @@ var WazeWrap = {};
             */
             addAction: function () {
                 if(this.title)
-                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members[this.name] = this.desc;
+                    I18n.translations.en.keyboard_shortcuts.groups[this.group].members[this.name] = this.desc;
                 W.accelerators.addAction(this.name, { group: this.group });
             },
                 
@@ -1253,7 +1246,7 @@ var WazeWrap = {};
             }
         });
 
-this.AddLayerCheckbox = function(group, checkboxText, checked, callback){
+		this.AddLayerCheckbox = function(group, checkboxText, checked, callback){
 			group = group.toLowerCase();
         var normalizedText = checkboxText.toLowerCase().replace(/\s/g, '_');
         var checkboxID = "layer-switcher-item_" + normalizedText;
@@ -1317,48 +1310,12 @@ this.AddLayerCheckbox = function(group, checkboxText, checked, callback){
 
         buildLayerItem(checked);
 	};
- +
- +        var buildLayerItem = function(isChecked){
- +            var groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
- +            $li = $('<li>');
- +            $li.html([
- +                '<div class="controls-container toggler">',
- +                '<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
- +                '<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
- +                '</div>',
- +            ].join(' '));
- +
- +            groupChildren.append($li);
- +            $('#' + checkboxID).prop('checked', isChecked);
- +            $('#' + checkboxID).change(function(){callback(this.checked); sessionStorage[normalizedText] = this.checked;});
- +            if(!$('#' + groupClass).is(':checked')){
- +                $('#' + checkboxID).prop('disabled', true);
- +                callback(false);
- +            }
- +
- +            $('#' + groupClass).change(function(){$('#' + checkboxID).prop('disabled', !this.checked); callback(this.checked);});
- +        };
- +
- +
- +        Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){
- +            buildLayerItem((sessionStorage[normalizedText]=='true'));
- +        });
- +
- +        buildLayerItem(checked);
- +                CreateParentGroup((typeof sessionStorage[groupClass] == "undefined" ? true : sessionStorage[groupClass]=='true'));  //create the group
- +                sessionStorage[groupClass] = true;
- +
- +                Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){ //make it reappear after changing modes
- +                    CreateParentGroup((sessionStorage[groupClass]=='true'));
- +                });
- +            }
- +
- +        Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){
- +            buildLayerItem((sessionStorage[normalizedText]=='true'));
- +        });
- +
- +        buildLayerItem(checked);
-	};	
-};
-
+    };
+	this.String = function(){
+		this.toTitleCase = function(){
+			return str.replace(/(?:^|\s)\w/g, function(match) {
+				return match.toUpperCase();
+				};
+		};
+    	});
 }.call(this));
