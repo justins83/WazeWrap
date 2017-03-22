@@ -1312,7 +1312,7 @@ var WazeWrap = {};
 	};
     };
 	function String(){
-		this.toTitleCase = function(){
+		this.toTitleCase = function(str){
 			return str.replace(/(?:^|\s)\w/g, function(match) {
 				return match.toUpperCase();
 			});
