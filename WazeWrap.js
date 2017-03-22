@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         WazeWrap Beta
+// @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.2.9.b3
+// @version      0.2.9
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -1072,6 +1072,7 @@ var WazeWrap = {};
             createGroup: function () {
                 W.accelerators.Groups[this.group] = [];
                 W.accelerators.Groups[this.group].members = [];
+
                 if(this.title && !I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group]){
                     I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group] = [];
                     I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].description = this.title;
@@ -1311,6 +1312,7 @@ var WazeWrap = {};
         buildLayerItem(checked);
 	};
     };
+
 	function String(){
 		this.toTitleCase = function(str){
 			return str.replace(/(?:^|\s)\w/g, function(match) {
