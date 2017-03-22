@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap Beta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.2.9.b2
+// @version      0.2.9.b3
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -1072,10 +1072,10 @@ var WazeWrap = {};
             createGroup: function () {
                 W.accelerators.Groups[this.group] = [];
                 W.accelerators.Groups[this.group].members = [];
-                if(this.title && !I18n.translations.en.keyboard_shortcuts.groups[this.group]){
-                    I18n.translations.en.keyboard_shortcuts.groups[this.group] = [];
-                    I18n.translations.en.keyboard_shortcuts.groups[this.group].description = this.title;
-                    I18n.translations.en.keyboard_shortcuts.groups[this.group].members = [];
+                if(this.title && !I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group]){
+                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group] = [];
+                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].description = this.title;
+                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members = [];
                 }
             },
                 
@@ -1085,7 +1085,7 @@ var WazeWrap = {};
             */
             addAction: function () {
                 if(this.title)
-                    I18n.translations.en.keyboard_shortcuts.groups[this.group].members[this.name] = this.desc;
+                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members[this.name] = this.desc;
                 W.accelerators.addAction(this.name, { group: this.group });
             },
                 
