@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.2.9
+// @version      0.3.00
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor/*
@@ -312,6 +312,7 @@ var WazeWrap = {};
 				if (distanceToSegment.distance < minDistance) {
 					minDistance = distanceToSegment.distance;
 					closestSegment = onscreenSegments[s];
+					closestSegment.closestPoint = new OL.Geometry.Point(distanceToSegment.x1, distanceToSegment.y1);
 				}
 			}
 			return closestSegment;
