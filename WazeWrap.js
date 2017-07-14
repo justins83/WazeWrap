@@ -295,12 +295,11 @@ var WazeWrap = {};
 					continue;
 
 				segmentType = onscreenSegments[s].attributes.roadType;
-				if (segmentType === 10 || segmentType === 3 || segmentType === 16 || segmentType === 18 || segmentType === 19 || segmentType === 5) //10 ped boardwalk, 16 stairway, 18 railroad, 19 runway, 3 freeway, 5 walking trail
+				if (segmentType === 10 || segmentType === 3 || segmentType === 16 || segmentType === 18 || segmentType === 19) //10 ped boardwalk, 16 stairway, 18 railroad, 19 runway, 3 freeway
 					continue;
 					
-				if(ignorePLR)
-					if(segmentType === 20) //PLR
-						continue;
+				if(ignorePLR && segmentType === 20) //PLR
+					continue;
 
 				if(ignoreUnnamedPR)
 					if(segmentType === 17 && WazeWrap.Model.getStreetName(onscreenSegments[s].attributes.primaryStreetID) === null) //PR
