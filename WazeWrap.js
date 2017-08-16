@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.3.02
+// @version      0.3.03
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
-// @include      https://beta.waze.com/*editor/*
-// @include      https://www.waze.com/*editor/*
+// @include      https://beta.waze.com/*editor*
+// @include      https://www.waze.com/*editor*
 // @exclude      https://www.waze.com/*user/editor/*
 // @grant        none
 // ==/UserScript==
