@@ -66,6 +66,7 @@ var WazeWrap = {};
 			Waze.map.events.unregister("moveend", this, RestoreMissingSegmentFunctions);
 			Waze.map.events.unregister("zoomend", this, RestoreMissingSegmentFunctions);
 			W.model.segments.getObjectArray()[0].__proto__.getDirection = function(){return (this.attributes.fwdDirection ? 1 : 0) + (this.attributes.revDirection ? 2 : 0);};
+			W.model.segments.getObjectArray()[0].__proto__.isTollRoad = function(){ return (this.attributes.fwdToll || this.attributes.revToll);};
 		}
 		else{
 			Waze.map.events.register("moveend", this, RestoreMissingSegmentFunctions);
