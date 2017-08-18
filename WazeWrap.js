@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.3.03
+// @version      0.3.04
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -44,6 +44,7 @@ var WazeWrap = {};
 		WazeWrap.isBetaEditor = /beta/.test(location.href);
 
         //SetUpRequire();
+	    RestoreMissingSegmentFunctions();
 
 		WazeWrap.test = "test";
         
@@ -60,6 +61,17 @@ var WazeWrap = {};
         console.log('WazeWrap Loaded');
     };
 
+	function RestoreMissingSegmentFunctions(){
+		if(W.model.segments.getObjectArray().length > 0){
+			Waze.map.events.unregister("moveend", this, RestoreMissingSegmentFunctions);
+			Waze.map.events.unregister("zoomend", this, RestoreMissingSegmentFunctions);
+			W.model.segments.getObjectArray()[0].__proto__.getDirection = function(){return (this.attributes.fwdDirection ? 1 : 0) + (this.attributes.revDirection ? 2 : 0);};
+		}
+		else{
+			Waze.map.events.register("moveend", this, RestoreMissingSegmentFunctions);
+			Waze.map.events.register("zoomend", this, RestoreMissingSegmentFunctions);
+		}
+	}
 
     function SetUpRequire(){
                 if(this.isBetaEditor || typeof window.require !== "undefined")
