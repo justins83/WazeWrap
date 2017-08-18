@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.3.04
+// @version      0.3.05
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -19,10 +19,8 @@ var WazeWrap = {};
 
 	function bootstrap(tries) {
 		tries = tries || 1;
-		if (window.W &&
-			window.W.map &&
-			window.W.model &&
-			window.W.loginManager.user &&
+		if (window.W && window.W.map &&
+			window.W.model && window.W.loginManager.user &&
 			$) {
 			init();
 		} else if (tries < 1000) {
@@ -40,14 +38,12 @@ var WazeWrap = {};
         var oldLib = window.WazeWrap;
         var root = this;
 
-		WazeWrap.Version = GM_info.script.version;
+		WazeWrap.Version = "0.3.05";
 		WazeWrap.isBetaEditor = /beta/.test(location.href);
 
         //SetUpRequire();
 	    RestoreMissingSegmentFunctions();
-
-		WazeWrap.test = "test";
-        
+	    
 		WazeWrap.Geometry = new Geometry;
 		WazeWrap.Model = new Model;
 		WazeWrap.Interface = new Interface;
@@ -65,8 +61,10 @@ var WazeWrap = {};
 		if(W.model.segments.getObjectArray().length > 0){
 			Waze.map.events.unregister("moveend", this, RestoreMissingSegmentFunctions);
 			Waze.map.events.unregister("zoomend", this, RestoreMissingSegmentFunctions);
-			W.model.segments.getObjectArray()[0].__proto__.getDirection = function(){return (this.attributes.fwdDirection ? 1 : 0) + (this.attributes.revDirection ? 2 : 0);};
-			W.model.segments.getObjectArray()[0].__proto__.isTollRoad = function(){ return (this.attributes.fwdToll || this.attributes.revToll);};
+			if(typeof W.selectionManager.selectedItems[0].model.getDirection == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.getDirection = function(){return (this.attributes.fwdDirection ? 1 : 0) + (this.attributes.revDirection ? 2 : 0);};
+			if(typeof W.selectionManager.selectedItems[0].model.isTollRoad == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.isTollRoad = function(){ return (this.attributes.fwdToll || this.attributes.revToll);};
 		}
 		else{
 			Waze.map.events.register("moveend", this, RestoreMissingSegmentFunctions);
