@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.3.05
+// @version      0.3.06
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -38,7 +38,7 @@ var WazeWrap = {};
         var oldLib = window.WazeWrap;
         var root = this;
 
-		WazeWrap.Version = "0.3.05";
+		WazeWrap.Version = "0.3.06";
 		WazeWrap.isBetaEditor = /beta/.test(location.href);
 
         //SetUpRequire();
@@ -61,9 +61,9 @@ var WazeWrap = {};
 		if(W.model.segments.getObjectArray().length > 0){
 			Waze.map.events.unregister("moveend", this, RestoreMissingSegmentFunctions);
 			Waze.map.events.unregister("zoomend", this, RestoreMissingSegmentFunctions);
-			if(typeof W.selectionManager.selectedItems[0].model.getDirection == "undefined")
+			if(typeof W.model.segments.getObjectArray()[0].model.getDirection == "undefined")
 				W.model.segments.getObjectArray()[0].__proto__.getDirection = function(){return (this.attributes.fwdDirection ? 1 : 0) + (this.attributes.revDirection ? 2 : 0);};
-			if(typeof W.selectionManager.selectedItems[0].model.isTollRoad == "undefined")
+			if(typeof W.model.segments.getObjectArray()[0].model.isTollRoad == "undefined")
 				W.model.segments.getObjectArray()[0].__proto__.isTollRoad = function(){ return (this.attributes.fwdToll || this.attributes.revToll);};
 		}
 		else{
