@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.3.06
+// @version      0.3.07
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -38,7 +38,7 @@ var WazeWrap = {};
         var oldLib = window.WazeWrap;
         var root = this;
 
-		WazeWrap.Version = "0.3.06";
+		WazeWrap.Version = "0.3.07";
 		WazeWrap.isBetaEditor = /beta/.test(location.href);
 
         //SetUpRequire();
@@ -376,7 +376,7 @@ var WazeWrap = {};
             if(segObj.model.attributes.junctionID === null)
                 return null;
 
-            return W.model.junctions.objects[segObj.model.attributes.junctionID].segIDs;
+            return W.model.junctions.objects[segObj.model.attributes.junctionID].attributes.segIDs;
         };
 
         this.getAllRoundaboutJunctionNodesFromObj = function(segObj){
