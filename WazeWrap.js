@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.2.9
+// @version      0.3.07
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
-// @include      https://beta.waze.com/*editor/*
-// @include      https://www.waze.com/*editor/*
+// @include      https://beta.waze.com/*editor*
+// @include      https://www.waze.com/*editor*
 // @exclude      https://www.waze.com/*user/editor/*
 // @grant        none
 // ==/UserScript==
@@ -19,10 +19,8 @@ var WazeWrap = {};
 
 	function bootstrap(tries) {
 		tries = tries || 1;
-		if (window.W &&
-			window.W.map &&
-			window.W.model &&
-			window.W.loginManager.user &&
+		if (window.W && window.W.map &&
+			window.W.model && window.W.loginManager.user &&
 			$) {
 			init();
 		} else if (tries < 1000) {
@@ -40,13 +38,12 @@ var WazeWrap = {};
         var oldLib = window.WazeWrap;
         var root = this;
 
-		WazeWrap.Version = GM_info.script.version;
+		WazeWrap.Version = "0.3.07";
 		WazeWrap.isBetaEditor = /beta/.test(location.href);
 
         //SetUpRequire();
-
-		WazeWrap.test = "test";
-        
+	    RestoreMissingSegmentFunctions();
+	    
 		WazeWrap.Geometry = new Geometry;
 		WazeWrap.Model = new Model;
 		WazeWrap.Interface = new Interface;
@@ -60,6 +57,20 @@ var WazeWrap = {};
         console.log('WazeWrap Loaded');
     };
 
+	function RestoreMissingSegmentFunctions(){
+		if(W.model.segments.getObjectArray().length > 0){
+			Waze.map.events.unregister("moveend", this, RestoreMissingSegmentFunctions);
+			Waze.map.events.unregister("zoomend", this, RestoreMissingSegmentFunctions);
+			if(typeof W.model.segments.getObjectArray()[0].model.getDirection == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.getDirection = function(){return (this.attributes.fwdDirection ? 1 : 0) + (this.attributes.revDirection ? 2 : 0);};
+			if(typeof W.model.segments.getObjectArray()[0].model.isTollRoad == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.isTollRoad = function(){ return (this.attributes.fwdToll || this.attributes.revToll);};
+		}
+		else{
+			Waze.map.events.register("moveend", this, RestoreMissingSegmentFunctions);
+			Waze.map.events.register("zoomend", this, RestoreMissingSegmentFunctions);
+		}
+	}
 
     function SetUpRequire(){
                 if(this.isBetaEditor || typeof window.require !== "undefined")
@@ -295,12 +306,11 @@ var WazeWrap = {};
 					continue;
 
 				segmentType = onscreenSegments[s].attributes.roadType;
-				if (segmentType === 10 || segmentType === 3 || segmentType === 16 || segmentType === 18 || segmentType === 19 || segmentType === 5) //10 ped boardwalk, 16 stairway, 18 railroad, 19 runway, 3 freeway, 5 walking trail
+				if (segmentType === 10 || segmentType === 16 || segmentType === 18 || segmentType === 19) //10 ped boardwalk, 16 stairway, 18 railroad, 19 runway, 3 freeway
 					continue;
 					
-				if(ignorePLR)
-					if(segmentType === 20) //PLR
-						continue;
+				if(ignorePLR && segmentType === 20) //PLR
+					continue;
 
 				if(ignoreUnnamedPR)
 					if(segmentType === 17 && WazeWrap.Model.getStreetName(onscreenSegments[s].attributes.primaryStreetID) === null) //PR
@@ -312,6 +322,7 @@ var WazeWrap = {};
 				if (distanceToSegment.distance < minDistance) {
 					minDistance = distanceToSegment.distance;
 					closestSegment = onscreenSegments[s];
+					closestSegment.closestPoint = new OL.Geometry.Point(distanceToSegment.x1, distanceToSegment.y1);
 				}
 			}
 			return closestSegment;
@@ -365,7 +376,7 @@ var WazeWrap = {};
             if(segObj.model.attributes.junctionID === null)
                 return null;
 
-            return W.model.junctions.objects[segObj.model.attributes.junctionID].segIDs;
+            return W.model.junctions.objects[segObj.model.attributes.junctionID].attributes.segIDs;
         };
 
         this.getAllRoundaboutJunctionNodesFromObj = function(segObj){
