@@ -1199,12 +1199,12 @@ var WazeWrap = {};
              */
             initialize: function (name, content, callback, context) {
                 var idName, i = 0;
-		var that = this;
+		
                 if (name && 'string' === typeof name &&
                     content && 'string' === typeof content) {
                     if (callback && 'function' === typeof callback) {
-                        that.callback = callback;
-                        that.context = context || callback;
+                        this.callback = callback;
+                        this.context = context || callback;
                     }
                     /* Sanitize name for html id attribute */
                     idName = name.toLowerCase().replace(/[^a-z-_]/g, '');
@@ -1217,49 +1217,49 @@ var WazeWrap = {};
                         idName = idName + i;
                     }
                     /* Create tab and content */
-                    that.$tab = $('<li/>')
+                    this.$tab = $('<li/>')
                         .append($('<a/>')
                             .attr({
                                 'href': '#sidepanel-' + idName,
                                 'data-toggle': 'tab',
                             })
                             .text(name));
-                    that.$content = $('<div/>')
+                    this.$content = $('<div/>')
                         .addClass('tab-pane')
                         .attr('id', 'sidepanel-' + idName)
                         .html(content);
 
                     that.appendTab();
 		    if (Waze.prefs) {
-		        Waze.prefs.on('change:isImperial',that.appendTab);
+		        Waze.prefs.on('change:isImperial',this.appendTab);
 		    }
-		    Waze.app.modeController.model.bind('change:mode', that.appendTab);
+		    Waze.app.modeController.model.bind('change:mode', this.appendTab);
                 }
             },
 
             append: function (content) {
-                that.$content.append(content);
+                this.$content.append(content);
             },
 
             appendTab: function () {
                 WazeWrap.Util.waitForElement(
-                    that.TAB_SELECTOR + ',' + that.CONTENT_SELECTOR,
+                    this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
                     function () {
-                        $(that.TAB_SELECTOR).append(that.$tab);
-                        $(that.CONTENT_SELECTOR).first().append(that.$content);
-                        if (that.callback) {
-                            that.callback.call(that.context);
+                        $(this.TAB_SELECTOR).append(this.$tab);
+                        $(this.CONTENT_SELECTOR).first().append(this.$content);
+                        if (this.callback) {
+                            this.callback.call(this.context);
                         }
-                    }, that);
+                    }, this);
             },
 
             clearContent: function () {
-                that.$content.empty();
+                this.$content.empty();
             },
 
             destroy: function () {
-                that.$tab.remove();
-                that.$content.remove();
+                this.$tab.remove();
+                this.$content.remove();
             }
         });
 
