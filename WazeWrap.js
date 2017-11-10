@@ -1243,6 +1243,7 @@ var WazeWrap = {};
             },
 
             appendTab: function (self) {
+		    debugger;
 		    if(self == null)
 			    self = this;
                 WazeWrap.Util.waitForElement(
