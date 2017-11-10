@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2017.11.10.01
+// @version      2017.11.10.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -1243,7 +1243,6 @@ var WazeWrap = {};
             },
 
             appendTab: function () {
-		    debugger;
                 WazeWrap.Util.waitForElement(
                     this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
                     function () {
