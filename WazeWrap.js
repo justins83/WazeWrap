@@ -1241,6 +1241,7 @@ var WazeWrap = {};
             },
 
             appendTab: function () {
+		    console.log("appendTab");
                 WazeWrap.Util.waitForElement(
                     this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
                     function () {
