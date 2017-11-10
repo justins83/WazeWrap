@@ -1229,7 +1229,7 @@ var WazeWrap = {};
                         .attr('id', 'sidepanel-' + idName)
                         .html(content);
 
-                    that.appendTab();
+                    this.appendTab();
 		    if (Waze.prefs) {
 		        Waze.prefs.on('change:isImperial',this.appendTab);
 		    }
