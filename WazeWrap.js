@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.3.07
+// @version      2017.11.10.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -1199,6 +1199,7 @@ var WazeWrap = {};
              */
             initialize: function (name, content, callback, context) {
                 var idName, i = 0;
+		
                 if (name && 'string' === typeof name &&
                     content && 'string' === typeof content) {
                     if (callback && 'function' === typeof callback) {
@@ -1229,6 +1230,11 @@ var WazeWrap = {};
                         .html(content);
 
                     this.appendTab();
+	    var that = this;
+		    if (Waze.prefs) {
+		        Waze.prefs.on('change:isImperial', function(){that.appendTab();});
+		    }
+		    Waze.app.modeController.model.bind('change:mode', function(){that.appendTab();});
                 }
             },
 
@@ -1237,6 +1243,7 @@ var WazeWrap = {};
             },
 
             appendTab: function () {
+		    debugger;
                 WazeWrap.Util.waitForElement(
                     this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
                     function () {
