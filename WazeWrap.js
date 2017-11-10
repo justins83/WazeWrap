@@ -1229,7 +1229,11 @@ var WazeWrap = {};
                         .html(content);
 
                     this.appendTab();
-                }
+			
+		    if (Waze.prefs) {
+		        Waze.prefs.on('change:isImperial', this.appendTab);
+		    }
+		    Waze.app.modeController.model.bind('change:mode', this.appendTab);
             },
 
             append: function (content) {
