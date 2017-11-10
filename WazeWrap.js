@@ -1180,6 +1180,7 @@ var WazeWrap = {};
             $content: null,
             context: null,
             $tab: null,
+	    that: this,
             
             /**
              * Creates a new WazeWrap.Interface.Tab. The tab is appended to the WME 
@@ -1230,9 +1231,9 @@ var WazeWrap = {};
 
                     this.appendTab();
 		    if (Waze.prefs) {
-		        Waze.prefs.on('change:isImperial',this.appendTab);
+		        Waze.prefs.on('change:isImperial',that.appendTab);
 		    }
-		    Waze.app.modeController.model.bind('change:mode', this.appendTab);
+		    Waze.app.modeController.model.bind('change:mode', that.appendTab);
                 }
             },
 
@@ -1242,14 +1243,14 @@ var WazeWrap = {};
 
             appendTab: function () {
                 WazeWrap.Util.waitForElement(
-                    this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
+                    that.TAB_SELECTOR + ',' + that.CONTENT_SELECTOR,
                     function () {
-                        $(this.TAB_SELECTOR).append(this.$tab);
-                        $(this.CONTENT_SELECTOR).first().append(this.$content);
-                        if (this.callback) {
-                            this.callback.call(this.context);
+                        $(that.TAB_SELECTOR).append(that.$tab);
+                        $(that.CONTENT_SELECTOR).first().append(that.$content);
+                        if (that.callback) {
+                            that.callback.call(that.context);
                         }
-                    }, this);
+                    }, that);
             },
 
             clearContent: function () {
