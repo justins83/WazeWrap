@@ -1199,11 +1199,12 @@ var WazeWrap = {};
              */
             initialize: function (name, content, callback, context) {
                 var idName, i = 0;
+		var that = this;
                 if (name && 'string' === typeof name &&
                     content && 'string' === typeof content) {
                     if (callback && 'function' === typeof callback) {
-                        this.callback = callback;
-                        this.context = context || callback;
+                        that.callback = callback;
+                        that.context = context || callback;
                     }
                     /* Sanitize name for html id attribute */
                     idName = name.toLowerCase().replace(/[^a-z-_]/g, '');
@@ -1216,19 +1217,19 @@ var WazeWrap = {};
                         idName = idName + i;
                     }
                     /* Create tab and content */
-                    this.$tab = $('<li/>')
+                    that.$tab = $('<li/>')
                         .append($('<a/>')
                             .attr({
                                 'href': '#sidepanel-' + idName,
                                 'data-toggle': 'tab',
                             })
                             .text(name));
-                    this.$content = $('<div/>')
+                    that.$content = $('<div/>')
                         .addClass('tab-pane')
                         .attr('id', 'sidepanel-' + idName)
                         .html(content);
 
-                    this.appendTab();
+                    that.appendTab();
 		    if (Waze.prefs) {
 		        Waze.prefs.on('change:isImperial',that.appendTab);
 		    }
@@ -1237,7 +1238,7 @@ var WazeWrap = {};
             },
 
             append: function (content) {
-                this.$content.append(content);
+                that.$content.append(content);
             },
 
             appendTab: function () {
@@ -1253,12 +1254,12 @@ var WazeWrap = {};
             },
 
             clearContent: function () {
-                this.$content.empty();
+                that.$content.empty();
             },
 
             destroy: function () {
-                this.$tab.remove();
-                this.$content.remove();
+                that.$tab.remove();
+                that.$content.remove();
             }
         });
 
