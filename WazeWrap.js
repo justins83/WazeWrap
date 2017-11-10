@@ -1243,12 +1243,12 @@ var WazeWrap = {};
             appendTab: function () {
 		    debugger;
                 WazeWrap.Util.waitForElement(
-                    this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
+                    TAB_SELECTOR + ',' + CONTENT_SELECTOR,
                     function () {
-                        $(this.TAB_SELECTOR).append(this.$tab);
-                        $(this.CONTENT_SELECTOR).first().append(this.$content);
-                        if (this.callback) {
-                            this.callback.call(this.context);
+                        $(TAB_SELECTOR).append($tab);
+                        $(CONTENT_SELECTOR).first().append($content);
+                        if (callback) {
+                            callback.call(context);
                         }
                     }, this);
             },
