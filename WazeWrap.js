@@ -1230,10 +1230,11 @@ var WazeWrap = {};
                         .html(content);
 
                     this.appendTab();
+	    var that = this;
 		    if (Waze.prefs) {
-		        Waze.prefs.on('change:isImperial',this.appendTab);
+		        Waze.prefs.on('change:isImperial', function(){that.appendTab(that);});
 		    }
-		    Waze.app.modeController.model.bind('change:mode', this.appendTab);
+		    Waze.app.modeController.model.bind('change:mode', that.appendTab);
                 }
             },
 
@@ -1241,16 +1242,18 @@ var WazeWrap = {};
                 this.$content.append(content);
             },
 
-            appendTab: function () {
+            appendTab: function (self) {
+		    if(self == null)
+			    self = this;
                 WazeWrap.Util.waitForElement(
-                    this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
+                    self.TAB_SELECTOR + ',' + self.CONTENT_SELECTOR,
                     function () {
-                        $(this.TAB_SELECTOR).append(this.$tab);
-                        $(this.CONTENT_SELECTOR).first().append(this.$content);
-                        if (this.callback) {
-                            this.callback.call(this.context);
+                        $(self.TAB_SELECTOR).append(self.$tab);
+                        $(self.CONTENT_SELECTOR).first().append(self.$content);
+                        if (self.callback) {
+                            self.callback.call(self.context);
                         }
-                    }, this);
+                    }, self);
             },
 
             clearContent: function () {
