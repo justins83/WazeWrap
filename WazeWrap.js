@@ -1234,7 +1234,7 @@ var WazeWrap = {};
 		    if (Waze.prefs) {
 		        Waze.prefs.on('change:isImperial', function(){that.appendTab();});
 		    }
-		    Waze.app.modeController.model.bind('change:mode', that.appendTab);
+		    Waze.app.modeController.model.bind('change:mode', function(){that.appendTab();});
                 }
             },
 
