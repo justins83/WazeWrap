@@ -1179,7 +1179,7 @@ var WazeWrap = {};
             callback: null,
             $content: null,
             context: null,
-            $tab: null
+            $tab: null,
             
             /**
              * Creates a new WazeWrap.Interface.Tab. The tab is appended to the WME 
