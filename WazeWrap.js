@@ -1230,7 +1230,7 @@ var WazeWrap = {};
 
                     this.appendTab();
 		    if (Waze.prefs) {
-		        Waze.prefs.on('change:isImperial', this.appendTab);
+		        Waze.prefs.on('change:isImperial', function(){console.log("Switching units!"); this.appendTab();});
 		    }
 		    Waze.app.modeController.model.bind('change:mode', this.appendTab);
                 }
