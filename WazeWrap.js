@@ -1243,14 +1243,14 @@ var WazeWrap = {};
 		    if(self == null)
 			    self = this;
                 WazeWrap.Util.waitForElement(
-                    self.TAB_SELECTOR + ',' + self.CONTENT_SELECTOR,
+                    this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
                     function () {
-                        $(self.TAB_SELECTOR).append(self.$tab);
-                        $(self.CONTENT_SELECTOR).first().append(self.$content);
-                        if (self.callback) {
-                            self.callback.call(self.context);
+                        $(this.TAB_SELECTOR).append(this.$tab);
+                        $(this.CONTENT_SELECTOR).first().append(this.$content);
+                        if (this.callback) {
+                            this.callback.call(this.context);
                         }
-                    }, self);
+                    }, this);
             },
 
             clearContent: function () {
