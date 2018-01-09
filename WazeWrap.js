@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      0.3.07
+// @version      2018.01.09.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -38,7 +38,7 @@ var WazeWrap = {};
         var oldLib = window.WazeWrap;
         var root = this;
 
-		WazeWrap.Version = "0.3.07";
+		WazeWrap.Version = "2018.01.09.01";
 		WazeWrap.isBetaEditor = /beta/.test(location.href);
 
 	    RestoreMissingSegmentFunctions();
