@@ -836,187 +836,176 @@ var WazeWrap = {};
             };
         } ();
 		
-        this.Shortcut = OL.Class(this, /** @lends WazeWrap.Interface.Shortcut.prototype */ {
-            name: null,
-            desc: null,
-            group: null,
-            title: null,
-            shortcut: {},
-            callback: null,
-            scope: null,
-            groupExists: false,
-            actionExists: false,
-            eventExists: false,
-            defaults: {
-                group: 'default'
-            },
-                
-            /**
-             * Creates a new {WazeWrap.Interface.Shortcut}.
-             * @class
-             * @name WazeWrap.Interface.Shortcut
-             * @param name {String} The name of the shortcut.
-             * @param desc {String} The description to display for the shortcut
-             * @param group {String} The name of the shortcut group.
-             * @param title {String} The title to display for this group in the Keyboard shortcuts list
-             * @param shortcut {String} The shortcut key(s). The shortcut  
-             * should be of the form 'i' where i is the keyboard shortuct or 
-             * include modifier keys  such as 'CSA+i', where C = the control 
-             * key, S = the shift key, A = the alt key, and i = the desired 
-             * keyboard shortcut. The modifier keys are optional.
-             * @param callback {Function} The function to be called by the 
-             * shortcut.
-             * @param scope {Object} The object to be used as this by the 
-             * callback.
-             * @return {WazeWrap.Interface.Shortcut} The new shortcut object.
-             * @example //Creates new shortcut and adds it to the map.
-             * shortcut = new WazeWrap.Interface.Shortcut('myName', 'myGroup', 'C+p', callbackFunc, null).add();
-             */
-            initialize: function (name, desc, group, title, shortcut, callback, scope) {
-                if ('string' === typeof name && name.length > 0 &&
-                    'string' === typeof shortcut &&
-                    'function' === typeof callback) {
-                    this.name = name;
-                    this.desc = desc;
-                    this.group = group || this.defaults.group;
-                    this.title = title;
-                    this.callback = callback;
-                    this.shortcut[shortcut] = name;
-                    if ('object' !== typeof scope) {
-                        this.scope = null;
-                    } else {
-                        this.scope = scope;
-                    }
-                    return this;
-                }
-            },
-                
-            /**
-            * Determines if the shortcut's group already exists.
-            * @private
-            */
-            doesGroupExist: function () {
-                this.groupExists = 'undefined' !== typeof W.accelerators.Groups[this.group] &&
-                undefined !== typeof W.accelerators.Groups[this.group].members;
-                return this.groupExists;
-            },
-                
-            /**
-            * Determines if the shortcut's action already exists.
-            * @private
-            */
-            doesActionExist: function () {
-                this.actionExists = 'undefined' !== typeof W.accelerators.Actions[this.name];
-                return this.actionExists;
-            },
-                
-            /**
-            * Determines if the shortcut's event already exists.
-            * @private
-            */
-            doesEventExist: function () {
-                this.eventExists = 'undefined' !== typeof W.accelerators.events.listeners[this.name] &&
-                W.accelerators.events.listeners[this.name].length > 0 &&
-                this.callback === W.accelerators.events.listeners[this.name][0].func &&
-                this.scope === W.accelerators.events.listeners[this.name][0].obj;
-                return this.eventExists;
-            },
-                
-            /**
-            * Creates the shortcut's group.
-            * @private
-            */
-            createGroup: function () {
-                W.accelerators.Groups[this.group] = [];
-                W.accelerators.Groups[this.group].members = [];
+         /**
+	 * Creates a new {WazeWrap.Interface.Shortcut}.
+	 * @class
+	 * @name WazeWrap.Interface.Shortcut
+	 * @param name {String} The name of the shortcut.
+	 * @param desc {String} The description to display for the shortcut
+	 * @param group {String} The name of the shortcut group.
+	 * @param title {String} The title to display for this group in the Keyboard shortcuts list
+	 * @param shortcut {String} The shortcut key(s). The shortcut  
+	 * should be of the form 'i' where i is the keyboard shortuct or 
+	 * include modifier keys  such as 'CSA+i', where C = the control 
+	 * key, S = the shift key, A = the alt key, and i = the desired 
+	 * keyboard shortcut. The modifier keys are optional.
+	 * @param callback {Function} The function to be called by the 
+	 * shortcut.
+	 * @param scope {Object} The object to be used as this by the 
+	 * callback.
+	 * @return {WazeWrap.Interface.Shortcut} The new shortcut object.
+	 * @example //Creates new shortcut and adds it to the map.
+	 * shortcut = new WazeWrap.Interface.Shortcut('myName', 'myGroup', 'C+p', callbackFunc, null).add();
+	 */
+	this.Shortcut = class Shortcut{
+		constructor(name, desc, group, title, shortcut, callback, scope){
+			if ('string' === typeof name && name.length > 0 && 'string' === typeof shortcut && 'function' === typeof callback) {
+				this.name = name;
+				this.desc = desc;
+				this.group = group || this.defaults.group;
+				this.title = title;
+				this.callback = callback;
+				this.shortcut = {};
+				this.shortcut[shortcut] = name;
+				if ('object' !== typeof scope) 
+					this.scope = null;
+				else 
+					this.scope = scope;
+				this.groupExists = false;
+				this.actionExists = false;
+				this.eventExists = false;
+				this.defaults = {group: 'default'};
 
-                if(this.title && !I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group]){
-                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group] = [];
-                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].description = this.title;
-                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members = [];
-                }
-            },
-                
-            /**
-            * Registers the shortcut's action.
-            * @private
-            */
-            addAction: function () {
-                if(this.title)
-                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members[this.name] = this.desc;
-                W.accelerators.addAction(this.name, { group: this.group });
-            },
-                
-            /**
-            * Registers the shortcut's event.
-            * @private
-            */
-            addEvent: function () {
-                W.accelerators.events.register(this.name, this.scope, this.callback);
-            },
-                
-            /**
-            * Registers the shortcut's keyboard shortcut.
-            * @private
-            */
-            registerShortcut: function () {
-                W.accelerators._registerShortcuts(this.shortcut);
-            },
-                
-            /**
-            * Adds the keyboard shortcut to the map.
-            * @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
-            */
-            add: function () {
-                /* If the group is not already defined, initialize the group. */
-                if (!this.doesGroupExist()) {
-                    this.createGroup();
-                }
+				return this;
+			}
+		}
 
-                /* Clear existing actions with same name */
-                if (this.doesActionExist()) {
-                    W.accelerators.Actions[this.name] = null;
-                }
-                this.addAction();
+		/**
+		* Determines if the shortcut's action already exists.
+		* @private
+		*/
+		doesGroupExist(){
+			this.groupExists = 'undefined' !== typeof W.accelerators.Groups[this.group] &&
+			undefined !== typeof W.accelerators.Groups[this.group].members;
+			return this.groupExists;
+		}
 
-                /* Register event only if it's not already registered */
-                if (!this.doesEventExist()) {
-                    this.addEvent();
-                }
+		/**
+		* Determines if the shortcut's action already exists.
+		* @private
+		*/
+		doesActionExist() {
+			this.actionExists = 'undefined' !== typeof W.accelerators.Actions[this.name];
+			return this.actionExists;
+		}
 
-                /* Finally, register the shortcut. */
-                this.registerShortcut();
-                return this;
-            },
-                
-            /**
-            * Removes the keyboard shortcut from the map.
-            * @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
-            */
-            remove: function () {
-                if (this.doesEventExist()) {
-                    W.accelerators.events.unregister(this.name, this.scope, this.callback);
-                }
-                if (this.doesActionExist()) {
-                    delete W.accelerators.Actions[this.name];
-                }
-                //remove shortcut?
-                return this;
-            },
-                
-            /**
-            * Changes the keyboard shortcut and applies changes to the map.
-            * @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
-            */
-            change: function (shortcut) {
-                if (shortcut) {
-                    this.shortcut = {};
-                    this.shortcut[shortcut] = this.name;
-                    this.registerShortcut();
-                }
-                return this;
-            }
-        });
+		/**
+		* Determines if the shortcut's event already exists.
+		* @private
+		*/
+		doesEventExist() {
+			this.eventExists = 'undefined' !== typeof W.accelerators.events.listeners[this.name] &&
+			W.accelerators.events.listeners[this.name].length > 0 &&
+			this.callback === W.accelerators.events.listeners[this.name][0].func &&
+			this.scope === W.accelerators.events.listeners[this.name][0].obj;
+			return this.eventExists;
+		}
+
+		/**
+		* Creates the shortcut's group.
+		* @private
+		*/
+		createGroup() {
+			W.accelerators.Groups[this.group] = [];
+			W.accelerators.Groups[this.group].members = [];
+
+			if(this.title && !I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group]){
+				I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group] = [];
+				I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].description = this.title;
+				I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members = [];
+			}
+		}
+
+		/**
+		* Registers the shortcut's action.
+		* @private
+		*/
+		addAction(){
+			if(this.title)
+				I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members[this.name] = this.desc;
+			W.accelerators.addAction(this.name, { group: this.group });
+		}
+
+		/**
+		* Registers the shortcut's event.
+		* @private
+		*/
+		addEvent(){
+			W.accelerators.events.register(this.name, this.scope, this.callback);
+		}
+
+		/**
+		* Registers the shortcut's keyboard shortcut.
+		* @private
+		*/
+		registerShortcut() {
+			W.accelerators._registerShortcuts(this.shortcut);
+		}
+
+		/**
+		* Adds the keyboard shortcut to the map.
+		* @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
+		*/
+		add(){
+			/* If the group is not already defined, initialize the group. */
+			if (!this.doesGroupExist()) {
+				this.createGroup();
+			}
+
+			/* Clear existing actions with same name */
+			if (this.doesActionExist()) {
+				W.accelerators.Actions[this.name] = null;
+			}
+			this.addAction();
+
+			/* Register event only if it's not already registered */
+			if (!this.doesEventExist()) {
+				this.addEvent();
+			}
+
+			/* Finally, register the shortcut. */
+			this.registerShortcut();
+			return this;
+		}
+
+		/**
+		* Removes the keyboard shortcut from the map.
+		* @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
+		*/
+		remove() {
+			if (this.doesEventExist()) {
+				W.accelerators.events.unregister(this.name, this.scope, this.callback);
+			}
+			if (this.doesActionExist()) {
+				delete W.accelerators.Actions[this.name];
+			}
+			//remove shortcut?
+			return this;
+		}
+
+		/**
+		* Changes the keyboard shortcut and applies changes to the map.
+		* @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
+		*/
+		change (shortcut) {
+			if (shortcut) {
+				this.shortcut = {};
+				this.shortcut[shortcut] = this.name;
+				this.registerShortcut();
+			}
+			return this;
+		}
+	}
 
 		this.Tab = class Tab{
 			constructor(name, content, callback, context){
