@@ -7,6 +7,7 @@
 // @include      https://beta.waze.com/*editor*
 // @include      https://www.waze.com/*editor*
 // @exclude      https://www.waze.com/*user/editor/*
+// @require      https://greasyfork.org/scripts/37481-hours-parser/code/Hours%20Parser.js?version=243523
 // @grant        none
 // ==/UserScript==
 
@@ -49,6 +50,7 @@ var WazeWrap = {};
 		WazeWrap.User = new User();
 		WazeWrap.Util = new Util();
 		WazeWrap.Require = new Require();
+	        WazeWrap.HoursParser = new HoursParser();
 	    WazeWrap.String = new String();
 		
         root.WazeWrap = WazeWrap;
