@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         WazeWrap
+// @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2017.11.10.02
+// @version      2018.01.09.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -38,24 +38,23 @@ var WazeWrap = {};
         var oldLib = window.WazeWrap;
         var root = this;
 
-		WazeWrap.Version = "0.3.07";
+		WazeWrap.Version = "2018.01.09.01";
 		WazeWrap.isBetaEditor = /beta/.test(location.href);
 
-        //SetUpRequire();
 	    RestoreMissingSegmentFunctions();
 	    
-		WazeWrap.Geometry = new Geometry;
-		WazeWrap.Model = new Model;
-		WazeWrap.Interface = new Interface;
-		WazeWrap.User = new User;
-		WazeWrap.Util = new Util;
-		WazeWrap.Require = new Require;
-	        WazeWrap.String = new String;
+		WazeWrap.Geometry = new Geometry();
+		WazeWrap.Model = new Model();
+		WazeWrap.Interface = new Interface();
+		WazeWrap.User = new User();
+		WazeWrap.Util = new Util();
+		WazeWrap.Require = new Require();
+	    WazeWrap.String = new String();
 		
         root.WazeWrap = WazeWrap;
 
         console.log('WazeWrap Loaded');
-    };
+    }
 
 	function RestoreMissingSegmentFunctions(){
 		if(W.model.segments.getObjectArray().length > 0){
@@ -70,159 +69,6 @@ var WazeWrap = {};
 			Waze.map.events.register("moveend", this, RestoreMissingSegmentFunctions);
 			Waze.map.events.register("zoomend", this, RestoreMissingSegmentFunctions);
 		}
-	}
-
-    function SetUpRequire(){
-                if(this.isBetaEditor || typeof window.require !== "undefined")
-                     return;
-
-                console.log("Setting d2's require fix...");
-
-		// setup one global var and put all in
-		var WMEAPI = {};
-
-		// detect URL of WME source code
-		WMEAPI.scripts = document.getElementsByTagName('script');
-		WMEAPI.url=null;
-		for (i=0;i<WMEAPI.scripts.length;i++){
-			if (WMEAPI.scripts[i].src.indexOf('/assets-editor/js/app')!=-1)
-			{
-				WMEAPI.url=WMEAPI.scripts[i].src;
-				break;
-			}
-		}
-		if (WMEAPI.url==null)
-			throw new Error("WME Hack: can't detect WME main JS");
-
-
-		// setup a fake require and require.define
-		WMEAPI.require=function (e) {
-			if (WMEAPI.require.define.modules.hasOwnProperty(e))
-				return WMEAPI.require.define.modules[e];
-			else
-				console.error('Require failed on ' + e, WMEAPI.require.define.modules);
-			return null;
-		};
-
-		WMEAPI.require.define=function (m) {
-			if (WMEAPI.require.define.hasOwnProperty('modules')==false)
-				WMEAPI.require.define.modules={};
-			for (var p in m){
-				WMEAPI.require.define.modules[p]=m[p];
-			}
-		};
-
-		// save the original webpackJsonp function
-		WMEAPI.tmp = window.webpackJsonp;
-
-		// taken from WME code: this function is a wrapper that setup the API and may call recursively other functions
-		WMEAPI.t = function (n) {
-			if (WMEAPI.s[n]) return WMEAPI.s[n].exports;
-			var r = WMEAPI.s[n] = {
-				exports: {},
-				id: n,
-				loaded: !1
-			};
-			return WMEAPI.e[n].call(r.exports, r, r.exports, WMEAPI.t), r.loaded = !0, r.exports;
-		};
-
-		// e is a copy of all WME funcs because function t need to access to this list
-		WMEAPI.e=[];
-
-		// the patch
-		window.webpackJsonp = function(a, i) {
-		// our API but we will use it only to build the require stuffs
-		var api={};
-		// taken from WME code. a is [1], so...
-		for (var o, d, u = 0, l = []; u < a.length; u++) d = a[u], WMEAPI.r[d] && l.push.apply(l, WMEAPI.r[d]), WMEAPI.r[d] = 0;
-		
-		var unknownCount=0;
-		var classname, funcStr;
-		
-		// copy i in e and keep a link from classname to index in e
-		for (o in i){
-			WMEAPI.e[o] = i[o];
-			funcStr = i[o].toString();
-			classname = funcStr.match(/CLASS_NAME:\"([^\"]*)\"/);
-			if (classname){
-				// keep the link.
-				api[classname[1].replace(/\./g,'/').replace(/^W\//, 'Waze/')]={index: o, func: WMEAPI.e[o]};
-			}
-			else{
-				api['Waze/Unknown/' + unknownCount]={index: o, func: WMEAPI.e[o]};
-				unknownCount++;
-			}
-			
-		}
-		
-		// taken from WME code: it calls the original webpackJsonp and do something else, but I don't really know what.
-		// removed the call to the original webpackJsonp: still works...
-		//for (tmp && tmp(a, i); l.length;) l.shift().call(null, t);
-		for (; l.length;) l.shift().call(null, WMEAPI.t);
-		WMEAPI.s[0] = 0;
-		
-		// run the first func of WME. This first func will call recusrsively all funcs needed to setup the API.
-		// After this call, s will contain all instanciables classes.
-		//var ret = WMEAPI.t(0);
-		
-		// now, build the requires thanks to the link we've built in var api.
-		var module={};
-		var apiFuncName;
-		unknownCount=0;
-		
-		for (o in i){
-			funcStr = i[o].toString();
-			classname = funcStr.match(/CLASS_NAME:\"([^\"]*)\"/);
-			if (classname){
-				module={};
-				apiFuncName = classname[1].replace(/\./g,'/').replace(/^W\//, 'Waze/');
-				module[apiFuncName]=WMEAPI.t(api[apiFuncName].index);
-				WMEAPI.require.define(module);
-			}
-			else{
-				var matches = funcStr.match(/SEGMENT:"segment",/);
-				if (matches){
-					module={};
-					apiFuncName='Waze/Model/ObjectType';
-					module[apiFuncName]=WMEAPI.t(api['Waze/Unknown/' + unknownCount].index);
-					WMEAPI.require.define(module);
-				}
-				unknownCount++;
-			}
-		}
-		 
-
-		// restore the original func
-		window.webpackJsonp=WMEAPI.tmp;
-
-		// set the require public if needed
-		// if so: others scripts must wait for the window.require to be available before using it.
-		window.require = WMEAPI.require;
-		// all available functions are in WMEAPI.require.define.modules
-		// console.debug this variable to read it:
-		// console.debug('Modules: ', WMEAPI.require.define.modules);
-		
-		// run your script here:
-		// setTimeout(yourscript);
-		
-		// again taken from WME code. Not sure about what it does.
-		//if (i[0]) return ret;
-		};
-
-		// some kind of global vars and init
-		WMEAPI.s = {};
-		WMEAPI.r = {
-			0: 0
-		};
-
-		// hacking finished
-
-		// load again WME through our patched func
-		WMEAPI.WMEHACK_Injected_script = document.createElement("script");
-		WMEAPI.WMEHACK_Injected_script.setAttribute("type", "application/javascript");
-		WMEAPI.WMEHACK_Injected_script.src = WMEAPI.url;
-		document.body.appendChild(WMEAPI.WMEHACK_Injected_script);
-                console.log("d2 fix complete");
 	}
 
     function Geometry(){
@@ -768,14 +614,14 @@ var WazeWrap = {};
 				this.dragging = !1,
 				this.forced = !1,
 				OL.Element.removeClass(this.map.viewPortDiv, "olDragDown"),
-				document.onselectstart = this.oldOnselectstart
+				document.onselectstart = this.oldOnselectstart;
 			},
 			down: function(e) {},
 			move: function(e) {},
 			up: function(e) {},
 			out: function(e) {},
 			mousedown: function(e) {
-				return this.dragstart(e)
+				return this.dragstart(e);
 			},
 			touchstart: function(e) {
 				return this.touch || (this.touch = !0,
@@ -786,30 +632,30 @@ var WazeWrap = {};
 					click: this.click,
 					scope: this
 				})),
-				this.dragstart(e)
+				this.dragstart(e);
 			},
 			mousemove: function(e) {
-				return this.dragmove(e)
+				return this.dragmove(e);
 			},
 			touchmove: function(e) {
-				return this.dragmove(e)
+				return this.dragmove(e);
 			},
 			removeTimeout: function() {
 				if (this.timeoutId = null ,
 				this.dragging)
-					return this.mousemove(this.lastMoveEvt)
+					return this.mousemove(this.lastMoveEvt);
 			},
 			mouseup: function(e) {
 				if (!this.forced || this.endOnMouseUp)
-					return this.started ? this.dragend(e) : void 0
+					return this.started ? this.dragend(e) : void 0;
 			},
 			touchend: function(e) {
 				if (e.xy = this.last,
 				!this.forced)
-					return this.dragend(e)
+					return this.dragend(e);
 			},
 			click: function(e) {
-				return this.start === this.last
+				return this.start === this.last;
 			},
 			activate: function(e) {
 				this.$el = e,
@@ -820,7 +666,7 @@ var WazeWrap = {};
 				$(document).on("mouseup.drag-" + this.uniqueID, $.proxy(this.mouseup, this)),
 				t.on("mousemove.drag-" + this.uniqueID, $.proxy(this.mousemove, this)),
 				t.on("touchmove.drag-" + this.uniqueID, $.proxy(this.touchmove, this)),
-				t.on("touchend.drag-" + this.uniqueID, $.proxy(this.touchend, this))
+				t.on("touchend.drag-" + this.uniqueID, $.proxy(this.touchend, this));
 			},
 			deactivate: function() {
 				return this.active = !1,
@@ -833,12 +679,12 @@ var WazeWrap = {};
 				this.dragging = !1,
 				this.start = null ,
 				this.last = null ,
-				OL.Element.removeClass(this.map.viewPortDiv, "olDragDown")
+				OL.Element.removeClass(this.map.viewPortDiv, "olDragDown");
 			},
 			adjustXY: function(e) {
 				var t = OL.Util.pagePosition(this.map.viewPortDiv);
 				return e.xy.x -= t[0],
-				e.xy.y -= t[1]
+				e.xy.y -= t[1];
 			},
 			CLASS_NAME: "W.Handler.DragElement"
 			});
@@ -976,7 +822,7 @@ var WazeWrap = {};
                 return modelReady;
             };
         } ();
-	};
+	}
 
     function Interface() {
         /**
@@ -990,345 +836,317 @@ var WazeWrap = {};
             };
         } ();
 		
-        this.Shortcut = OL.Class(this, /** @lends WazeWrap.Interface.Shortcut.prototype */ {
-            name: null,
-            desc: null,
-            group: null,
-            title: null,
-            shortcut: {},
-            callback: null,
-            scope: null,
-            groupExists: false,
-            actionExists: false,
-            eventExists: false,
-            defaults: {
-                group: 'default'
-            },
-                
-            /**
-             * Creates a new {WazeWrap.Interface.Shortcut}.
-             * @class
-             * @name WazeWrap.Interface.Shortcut
-             * @param name {String} The name of the shortcut.
-             * @param desc {String} The description to display for the shortcut
-             * @param group {String} The name of the shortcut group.
-             * @param title {String} The title to display for this group in the Keyboard shortcuts list
-             * @param shortcut {String} The shortcut key(s). The shortcut  
-             * should be of the form 'i' where i is the keyboard shortuct or 
-             * include modifier keys  such as 'CSA+i', where C = the control 
-             * key, S = the shift key, A = the alt key, and i = the desired 
-             * keyboard shortcut. The modifier keys are optional.
-             * @param callback {Function} The function to be called by the 
-             * shortcut.
-             * @param scope {Object} The object to be used as this by the 
-             * callback.
-             * @return {WazeWrap.Interface.Shortcut} The new shortcut object.
-             * @example //Creates new shortcut and adds it to the map.
-             * shortcut = new WazeWrap.Interface.Shortcut('myName', 'myGroup', 'C+p', callbackFunc, null).add();
-             */
-            initialize: function (name, desc, group, title, shortcut, callback, scope) {
-                if ('string' === typeof name && name.length > 0 &&
-                    'string' === typeof shortcut &&
-                    'function' === typeof callback) {
-                    this.name = name;
-                    this.desc = desc;
-                    this.group = group || this.defaults.group;
-                    this.title = title;
-                    this.callback = callback;
-                    this.shortcut[shortcut] = name;
-                    if ('object' !== typeof scope) {
-                        this.scope = null;
-                    } else {
-                        this.scope = scope;
-                    }
-                    return this;
-                }
-            },
-                
-            /**
-            * Determines if the shortcut's group already exists.
-            * @private
-            */
-            doesGroupExist: function () {
-                this.groupExists = 'undefined' !== typeof W.accelerators.Groups[this.group] &&
-                undefined !== typeof W.accelerators.Groups[this.group].members;
-                return this.groupExists;
-            },
-                
-            /**
-            * Determines if the shortcut's action already exists.
-            * @private
-            */
-            doesActionExist: function () {
-                this.actionExists = 'undefined' !== typeof W.accelerators.Actions[this.name];
-                return this.actionExists;
-            },
-                
-            /**
-            * Determines if the shortcut's event already exists.
-            * @private
-            */
-            doesEventExist: function () {
-                this.eventExists = 'undefined' !== typeof W.accelerators.events.listeners[this.name] &&
-                W.accelerators.events.listeners[this.name].length > 0 &&
-                this.callback === W.accelerators.events.listeners[this.name][0].func &&
-                this.scope === W.accelerators.events.listeners[this.name][0].obj;
-                return this.eventExists;
-            },
-                
-            /**
-            * Creates the shortcut's group.
-            * @private
-            */
-            createGroup: function () {
-                W.accelerators.Groups[this.group] = [];
-                W.accelerators.Groups[this.group].members = [];
+         /**
+	 * Creates a new {WazeWrap.Interface.Shortcut}.
+	 * @class
+	 * @name WazeWrap.Interface.Shortcut
+	 * @param name {String} The name of the shortcut.
+	 * @param desc {String} The description to display for the shortcut
+	 * @param group {String} The name of the shortcut group.
+	 * @param title {String} The title to display for this group in the Keyboard shortcuts list
+	 * @param shortcut {String} The shortcut key(s). The shortcut  
+	 * should be of the form 'i' where i is the keyboard shortuct or 
+	 * include modifier keys  such as 'CSA+i', where C = the control 
+	 * key, S = the shift key, A = the alt key, and i = the desired 
+	 * keyboard shortcut. The modifier keys are optional.
+	 * @param callback {Function} The function to be called by the 
+	 * shortcut.
+	 * @param scope {Object} The object to be used as this by the 
+	 * callback.
+	 * @return {WazeWrap.Interface.Shortcut} The new shortcut object.
+	 * @example //Creates new shortcut and adds it to the map.
+	 * shortcut = new WazeWrap.Interface.Shortcut('myName', 'myGroup', 'C+p', callbackFunc, null).add();
+	 */
+	this.Shortcut = class Shortcut{
+		constructor(name, desc, group, title, shortcut, callback, scope){
+			if ('string' === typeof name && name.length > 0 && 'string' === typeof shortcut && 'function' === typeof callback) {
+				this.name = name;
+				this.desc = desc;
+				this.group = group || this.defaults.group;
+				this.title = title;
+				this.callback = callback;
+				this.shortcut = {};
+				this.shortcut[shortcut] = name;
+				if ('object' !== typeof scope) 
+					this.scope = null;
+				else 
+					this.scope = scope;
+				this.groupExists = false;
+				this.actionExists = false;
+				this.eventExists = false;
+				this.defaults = {group: 'default'};
 
-                if(this.title && !I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group]){
-                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group] = [];
-                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].description = this.title;
-                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members = [];
-                }
-            },
-                
-            /**
-            * Registers the shortcut's action.
-            * @private
-            */
-            addAction: function () {
-                if(this.title)
-                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members[this.name] = this.desc;
-                W.accelerators.addAction(this.name, { group: this.group });
-            },
-                
-            /**
-            * Registers the shortcut's event.
-            * @private
-            */
-            addEvent: function () {
-                W.accelerators.events.register(this.name, this.scope, this.callback);
-            },
-                
-            /**
-            * Registers the shortcut's keyboard shortcut.
-            * @private
-            */
-            registerShortcut: function () {
-                W.accelerators._registerShortcuts(this.shortcut);
-            },
-                
-            /**
-            * Adds the keyboard shortcut to the map.
-            * @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
-            */
-            add: function () {
-                /* If the group is not already defined, initialize the group. */
-                if (!this.doesGroupExist()) {
-                    this.createGroup();
-                }
+				return this;
+			}
+		}
 
-                /* Clear existing actions with same name */
-                if (this.doesActionExist()) {
-                    W.accelerators.Actions[this.name] = null;
-                }
-                this.addAction();
+		/**
+		* Determines if the shortcut's action already exists.
+		* @private
+		*/
+		doesGroupExist(){
+			this.groupExists = 'undefined' !== typeof W.accelerators.Groups[this.group] &&
+			undefined !== typeof W.accelerators.Groups[this.group].members;
+			return this.groupExists;
+		}
 
-                /* Register event only if it's not already registered */
-                if (!this.doesEventExist()) {
-                    this.addEvent();
-                }
+		/**
+		* Determines if the shortcut's action already exists.
+		* @private
+		*/
+		doesActionExist() {
+			this.actionExists = 'undefined' !== typeof W.accelerators.Actions[this.name];
+			return this.actionExists;
+		}
 
-                /* Finally, register the shortcut. */
-                this.registerShortcut();
-                return this;
-            },
-                
-            /**
-            * Removes the keyboard shortcut from the map.
-            * @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
-            */
-            remove: function () {
-                if (this.doesEventExist()) {
-                    W.accelerators.events.unregister(this.name, this.scope, this.callback);
-                }
-                if (this.doesActionExist()) {
-                    delete W.accelerators.Actions[this.name];
-                }
-                //remove shortcut?
-                return this;
-            },
-                
-            /**
-            * Changes the keyboard shortcut and applies changes to the map.
-            * @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
-            */
-            change: function (shortcut) {
-                if (shortcut) {
-                    this.shortcut = {};
-                    this.shortcut[shortcut] = this.name;
-                    this.registerShortcut();
-                }
-                return this;
-            }
-        }),
+		/**
+		* Determines if the shortcut's event already exists.
+		* @private
+		*/
+		doesEventExist() {
+			this.eventExists = 'undefined' !== typeof W.accelerators.events.listeners[this.name] &&
+			W.accelerators.events.listeners[this.name].length > 0 &&
+			this.callback === W.accelerators.events.listeners[this.name][0].func &&
+			this.scope === W.accelerators.events.listeners[this.name][0].obj;
+			return this.eventExists;
+		}
 
-		this.Tab = OL.Class(this, {
-            /** @lends WazeWrap.Interface.Tab */
-            TAB_SELECTOR: '#user-tabs ul.nav-tabs',
-            CONTENT_SELECTOR: '#user-info div.tab-content',
-            callback: null,
-            $content: null,
-            context: null,
-            $tab: null,
-            
-            /**
-             * Creates a new WazeWrap.Interface.Tab. The tab is appended to the WME 
-             * editor sidebar and contains the passed HTML content.
-             * @class
-             * @name WazeWrap.Interface.Tab
-             * @param {String} name The name of the tab. Should not contain any 
-             * special characters.
-             * @param {String} content The HTML content of the tab.
-             * @param {Function} [callback] A function to call upon successfully 
-             * appending the tab.
-             * @param {Object} [context] The context in which to call the callback 
-             * function.
-                     * @return {WazeWrap.Interface.Tab} The new tab object.
-             * @example //Creates new tab and adds it to the page.
-             * new WazeWrap.Interface.Tab('thebestscriptever', '<div>Hello World!</div>');
-             */
-            initialize: function (name, content, callback, context) {
-                var idName, i = 0;
-		
-                if (name && 'string' === typeof name &&
-                    content && 'string' === typeof content) {
-                    if (callback && 'function' === typeof callback) {
-                        this.callback = callback;
-                        this.context = context || callback;
-                    }
-                    /* Sanitize name for html id attribute */
-                    idName = name.toLowerCase().replace(/[^a-z-_]/g, '');
-                    /* Make sure id will be unique on page */
-                    while (
-                        $('#sidepanel-' + (i ? idName + i : idName)).length > 0) {
-                        i++;
-                    }
-                    if (i) {
-                        idName = idName + i;
-                    }
-                    /* Create tab and content */
-                    this.$tab = $('<li/>')
-                        .append($('<a/>')
-                            .attr({
-                                'href': '#sidepanel-' + idName,
-                                'data-toggle': 'tab',
-                            })
-                            .text(name));
-                    this.$content = $('<div/>')
-                        .addClass('tab-pane')
-                        .attr('id', 'sidepanel-' + idName)
-                        .html(content);
+		/**
+		* Creates the shortcut's group.
+		* @private
+		*/
+		createGroup() {
+			W.accelerators.Groups[this.group] = [];
+			W.accelerators.Groups[this.group].members = [];
 
-                    this.appendTab();
-	    var that = this;
-		    if (Waze.prefs) {
-		        Waze.prefs.on('change:isImperial', function(){that.appendTab();});
-		    }
-		    Waze.app.modeController.model.bind('change:mode', function(){that.appendTab();});
-                }
-            },
+			if(this.title && !I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group]){
+				I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group] = [];
+				I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].description = this.title;
+				I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members = [];
+			}
+		}
 
-            append: function (content) {
-                this.$content.append(content);
-            },
+		/**
+		* Registers the shortcut's action.
+		* @private
+		*/
+		addAction(){
+			if(this.title)
+				I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members[this.name] = this.desc;
+			W.accelerators.addAction(this.name, { group: this.group });
+		}
 
-            appendTab: function () {
-                WazeWrap.Util.waitForElement(
-                    this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
-                    function () {
-                        $(this.TAB_SELECTOR).append(this.$tab);
-                        $(this.CONTENT_SELECTOR).first().append(this.$content);
-                        if (this.callback) {
-                            this.callback.call(this.context);
-                        }
-                    }, this);
-            },
+		/**
+		* Registers the shortcut's event.
+		* @private
+		*/
+		addEvent(){
+			W.accelerators.events.register(this.name, this.scope, this.callback);
+		}
 
-            clearContent: function () {
-                this.$content.empty();
-            },
+		/**
+		* Registers the shortcut's keyboard shortcut.
+		* @private
+		*/
+		registerShortcut() {
+			W.accelerators._registerShortcuts(this.shortcut);
+		}
 
-            destroy: function () {
-                this.$tab.remove();
-                this.$content.remove();
-            }
-        });
+		/**
+		* Adds the keyboard shortcut to the map.
+		* @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
+		*/
+		add(){
+			/* If the group is not already defined, initialize the group. */
+			if (!this.doesGroupExist()) {
+				this.createGroup();
+			}
+
+			/* Clear existing actions with same name */
+			if (this.doesActionExist()) {
+				W.accelerators.Actions[this.name] = null;
+			}
+			this.addAction();
+
+			/* Register event only if it's not already registered */
+			if (!this.doesEventExist()) {
+				this.addEvent();
+			}
+
+			/* Finally, register the shortcut. */
+			this.registerShortcut();
+			return this;
+		}
+
+		/**
+		* Removes the keyboard shortcut from the map.
+		* @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
+		*/
+		remove() {
+			if (this.doesEventExist()) {
+				W.accelerators.events.unregister(this.name, this.scope, this.callback);
+			}
+			if (this.doesActionExist()) {
+				delete W.accelerators.Actions[this.name];
+			}
+			//remove shortcut?
+			return this;
+		}
+
+		/**
+		* Changes the keyboard shortcut and applies changes to the map.
+		* @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
+		*/
+		change (shortcut) {
+			if (shortcut) {
+				this.shortcut = {};
+				this.shortcut[shortcut] = this.name;
+				this.registerShortcut();
+			}
+			return this;
+		}
+	}
+
+		this.Tab = class Tab{
+			constructor(name, content, callback, context){
+				this.TAB_SELECTOR = '#user-tabs ul.nav-tabs';
+				this.CONTENT_SELECTOR = '#user-info div.tab-content';
+				this.callback = null;
+				this.$content = null;
+				this.context = null;
+				this.$tab = null;
+				
+				 let idName, i = 0;
+				
+				if (name && 'string' === typeof name &&
+					content && 'string' === typeof content) {
+					if (callback && 'function' === typeof callback) {
+						this.callback = callback;
+						this.context = context || callback;
+					}
+					/* Sanitize name for html id attribute */
+					idName = name.toLowerCase().replace(/[^a-z-_]/g, '');
+					/* Make sure id will be unique on page */
+					while (
+						$('#sidepanel-' + (i ? idName + i : idName)).length > 0) {
+						i++;
+					}
+					if (i) {
+						idName = idName + i;
+					}
+					/* Create tab and content */
+					this.$tab = $('<li/>')
+						.append($('<a/>')
+							.attr({
+								'href': '#sidepanel-' + idName,
+								'data-toggle': 'tab',
+							})
+							.text(name));
+					this.$content = $('<div/>')
+						.addClass('tab-pane')
+						.attr('id', 'sidepanel-' + idName)
+						.html(content);
+
+					this.appendTab();
+					let that = this;
+					if (Waze.prefs) {
+						Waze.prefs.on('change:isImperial', function(){that.appendTab();});
+					}
+					Waze.app.modeController.model.bind('change:mode', function(){that.appendTab();});
+						}
+					}
+			
+			append(content){
+				this.$content.append(content);
+			}
+			
+			appendTab(){
+				WazeWrap.Util.waitForElement(
+					this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
+					function () {
+						$(this.TAB_SELECTOR).append(this.$tab);
+						$(this.CONTENT_SELECTOR).first().append(this.$content);
+						if (this.callback) {
+							this.callback.call(this.context);
+						}
+					}, this);
+			}
+			
+			clearContent(){
+				this.$content.empty();
+			}
+			
+			destroy(){
+				this.$tab.remove();
+				this.$content.remove();
+			}
+		}
 
 		this.AddLayerCheckbox = function(group, checkboxText, checked, callback){
 			group = group.toLowerCase();
-        var normalizedText = checkboxText.toLowerCase().replace(/\s/g, '_');
-        var checkboxID = "layer-switcher-item_" + normalizedText;
-        var groupPrefix = 'layer-switcher-group_';
-        var groupClass = groupPrefix + group.toLowerCase();
-        sessionStorage[normalizedText] = checked;
+			var normalizedText = checkboxText.toLowerCase().replace(/\s/g, '_');
+			var checkboxID = "layer-switcher-item_" + normalizedText;
+			var groupPrefix = 'layer-switcher-group_';
+			var groupClass = groupPrefix + group.toLowerCase();
+			sessionStorage[normalizedText] = checked;
 
-        var CreateParentGroup = function(groupChecked){
-            var groupList = $('.layer-switcher').find('.list-unstyled.togglers');
-            var checkboxText = group.charAt(0).toUpperCase() + group.substr(1);
-            var newLI = $('<li class="group">');
-            newLI.html([
-                '<div class="controls-container toggler">',
-                '<input class="' + groupClass + '" id="' + groupClass + '" type="checkbox" ' + (groupChecked ? 'checked' : '') +'>',
-                '<label for="' + groupClass + '">',
-                '<span class="label-text">'+ checkboxText + '</span>',
-                '</label></div>',
-                '<ul class="children"></ul>'
-                ].join(' '));
+			var CreateParentGroup = function(groupChecked){
+				var groupList = $('.layer-switcher').find('.list-unstyled.togglers');
+				var checkboxText = group.charAt(0).toUpperCase() + group.substr(1);
+				var newLI = $('<li class="group">');
+				newLI.html([
+					'<div class="controls-container toggler">',
+					'<input class="' + groupClass + '" id="' + groupClass + '" type="checkbox" ' + (groupChecked ? 'checked' : '') +'>',
+					'<label for="' + groupClass + '">',
+					'<span class="label-text">'+ checkboxText + '</span>',
+					'</label></div>',
+					'<ul class="children"></ul>'
+					].join(' '));
 
-            groupList.append(newLI);
-            $('#' + groupClass).change(function(){sessionStorage[groupClass] = this.checked;});
-        };
+				groupList.append(newLI);
+				$('#' + groupClass).change(function(){sessionStorage[groupClass] = this.checked;});
+			};
 
-        if(group !== "issues" && group !== "places" && group !== "road" && group !== "display") //"non-standard" group, check its existence
-            if($('.'+groupClass).length === 0){ //Group doesn't exist yet, create it
-                var isParentChecked = (typeof sessionStorage[groupClass] == "undefined" ? true : sessionStorage[groupClass]=='true');
-                CreateParentGroup(isParentChecked);  //create the group
-                sessionStorage[groupClass] = isParentChecked;
+			if(group !== "issues" && group !== "places" && group !== "road" && group !== "display") //"non-standard" group, check its existence
+				if($('.'+groupClass).length === 0){ //Group doesn't exist yet, create it
+					var isParentChecked = (typeof sessionStorage[groupClass] == "undefined" ? true : sessionStorage[groupClass]=='true');
+					CreateParentGroup(isParentChecked);  //create the group
+					sessionStorage[groupClass] = isParentChecked;
 
-                Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){ //make it reappear after changing modes
-                    CreateParentGroup((sessionStorage[groupClass]=='true'));
-                });
-            }
+					Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){ //make it reappear after changing modes
+						CreateParentGroup((sessionStorage[groupClass]=='true'));
+					});
+				}
 
-        var buildLayerItem = function(isChecked){
-            var groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
-            $li = $('<li>');
-            $li.html([
-                '<div class="controls-container toggler">',
-                '<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
-                '<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
-                '</div>',
-            ].join(' '));
+			var buildLayerItem = function(isChecked){
+				var groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
+				$li = $('<li>');
+				$li.html([
+					'<div class="controls-container toggler">',
+					'<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
+					'<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
+					'</div>',
+				].join(' '));
 
-            groupChildren.append($li);
-            $('#' + checkboxID).prop('checked', isChecked);
-            $('#' + checkboxID).change(function(){callback(this.checked); sessionStorage[normalizedText] = this.checked;});
-            if(!$('#' + groupClass).is(':checked')){
-                $('#' + checkboxID).prop('disabled', true);
-                callback(false);
-            }
+				groupChildren.append($li);
+				$('#' + checkboxID).prop('checked', isChecked);
+				$('#' + checkboxID).change(function(){callback(this.checked); sessionStorage[normalizedText] = this.checked;});
+				if(!$('#' + groupClass).is(':checked')){
+					$('#' + checkboxID).prop('disabled', true);
+					callback(false);
+				}
 
-            $('#' + groupClass).change(function(){$('#' + checkboxID).prop('disabled', !this.checked); callback(this.checked);});
-        };
+				$('#' + groupClass).change(function(){$('#' + checkboxID).prop('disabled', !this.checked); callback(this.checked);});
+			};
 
 
-        Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){
-            buildLayerItem((sessionStorage[normalizedText]=='true'));
-        });
+			Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){
+				buildLayerItem((sessionStorage[normalizedText]=='true'));
+			});
 
-        buildLayerItem(checked);
-	};
-    };
+			buildLayerItem(checked);
+		};
+    }
 
 	function String(){
 		this.toTitleCase = function(str){
@@ -1336,5 +1154,5 @@ var WazeWrap = {};
 				return match.toUpperCase();
 			});
 		};
-	};
+	}
 }.call(this));
