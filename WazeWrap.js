@@ -17,7 +17,7 @@
 (function() {
     'use strict';
 
-    var WazeWrap = {Ready: false, Version: "2018.01.23.01"};
+    var WazeWrap = {Ready: false, Version: "2018.01.24.01"};
 		
     function bootstrap(tries) {
         tries = tries || 1;
@@ -161,7 +161,7 @@
                         continue;
 
 
-                distanceToSegment = mygeometry.distanceTo(onscreenSegments[s].geometry, {details: true});
+                let distanceToSegment = mygeometry.distanceTo(onscreenSegments[s].geometry, {details: true});
 
                 if (distanceToSegment.distance < minDistance) {
                     minDistance = distanceToSegment.distance;
@@ -1097,7 +1097,7 @@
 
             var buildLayerItem = function(isChecked){
                 var groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
-                $li = $('<li>');
+                let $li = $('<li>');
                 $li.html([
                     '<div class="controls-container toggler">',
                     '<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
