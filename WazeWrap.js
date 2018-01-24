@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         WazeWrap
+// @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.01.24.01
+// @version      2018.01.24.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -17,10 +17,13 @@
 (function() {
     'use strict';
   
-  var WazeWrap = {Ready: false, Version: "2018.01.24.01"};
+  var WazeWrap = {Ready: false, Version: "2018.01.24.02"};
 	
     function bootstrap(tries) {
         tries = tries || 1;
+	if(!location.href.match(/^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/))
+		return;
+	    
         if (W && W.map &&
             W.model && W.loginManager.user &&
             $) {
