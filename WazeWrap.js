@@ -149,7 +149,7 @@
                 if (!onscreenSegments.hasOwnProperty(s))
                     continue;
 
-                segmentType = onscreenSegments[s].attributes.roadType;
+                let segmentType = onscreenSegments[s].attributes.roadType;
                 if (segmentType === 10 || segmentType === 16 || segmentType === 18 || segmentType === 19) //10 ped boardwalk, 16 stairway, 18 railroad, 19 runway, 3 freeway
                     continue;
 
