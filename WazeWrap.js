@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.04.10.01
+// @version      2018.04.10.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -17,7 +17,7 @@
 (function() {
     'use strict';
   
-  var WazeWrap = {Ready: false, Version: "2018.04.10.01"};
+  var WazeWrap = {Ready: false, Version: "2018.04.10.02"};
 
 (function() {
     'use strict';
@@ -56,6 +56,18 @@
         WazeWrap.Util = new Util;
         WazeWrap.Require = new Require;
         WazeWrap.String = new String;
+		
+		WazeWrap.getSelectedFeatures = function(){
+			if(!W.selectionManager.getSelectedFeatures)
+				return W.selectionManager.selectedItems();
+			return W.selectionManager.getSelectedFeatures();
+		}
+		
+		WazeWrap.hasSelectedFeatures = function(){
+			if(!W.selectionManager.hasSelectedFeatures)
+				return W.selectionManager.hasSelectedItems();
+			return W.selectionManager.hasSelectedFeatures();
+		}
 
 		WazeWrap.Ready = true;
         window.WazeWrap = WazeWrap;
@@ -63,17 +75,7 @@
         console.log('WazeWrap Loaded');
     }
 	
-	this.getSelectedFeatures = function(){
-		if(!W.selectionManager.getSelectedFeatures)
-			return W.selectionManager.selectedItems();
-		return W.selectionManager.getSelectedFeatures();
-	}
 	
-	this.hasSelectedFeatures = function(){
-		if(!W.selectionManager.hasSelectedFeatures)
-			return W.selectionManager.hasSelectedItems();
-		return W.selectionManager.hasSelectedFeatures();
-	}
 
     function RestoreMissingSegmentFunctions(){
         if(W.model.segments.getObjectArray().length > 0){
