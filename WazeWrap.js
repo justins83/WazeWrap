@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.04.10.03
+// @version      2018.04.10.04
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-  var WazeWrap = {Ready: false, Version: "2018.04.10.03"};
+  var WazeWrap = {Ready: false, Version: "2018.04.10.04"};
 
 (function() {
     'use strict';
@@ -55,7 +55,7 @@
 		
 		WazeWrap.getSelectedFeatures = function(){
 			if(!W.selectionManager.getSelectedFeatures)
-				return W.selectionManager.selectedItems();
+				return W.selectionManager.selectedItems;
 			return W.selectionManager.getSelectedFeatures();
 		}
 		
