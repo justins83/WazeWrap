@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.04.10.02
+// @version      2018.04.10.03
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,11 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-
-(function() {
-    'use strict';
-  
-  var WazeWrap = {Ready: false, Version: "2018.04.10.02"};
+  var WazeWrap = {Ready: false, Version: "2018.04.10.03"};
 
 (function() {
     'use strict';
@@ -49,13 +45,13 @@
         //SetUpRequire();
         RestoreMissingSegmentFunctions();
 
-        WazeWrap.Geometry = new Geometry;
-        WazeWrap.Model = new Model;
-        WazeWrap.Interface = new Interface;
-        WazeWrap.User = new User;
-        WazeWrap.Util = new Util;
-        WazeWrap.Require = new Require;
-        WazeWrap.String = new String;
+        WazeWrap.Geometry = new Geometry();
+        WazeWrap.Model = new Model();
+        WazeWrap.Interface = new Interface();
+        WazeWrap.User = new User();
+        WazeWrap.Util = new Util();
+        WazeWrap.Require = new Require();
+        WazeWrap.String = new String();
 		
 		WazeWrap.getSelectedFeatures = function(){
 			if(!W.selectionManager.getSelectedFeatures)
