@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.02.22.01
+// @version      2018.04.10.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-  var WazeWrap = {Ready: false, Version: "2018.01.24.05"};
+  var WazeWrap = {Ready: false, Version: "2018.04.10.05"};
 
 (function() {
     'use strict';
@@ -45,19 +45,46 @@
         //SetUpRequire();
         RestoreMissingSegmentFunctions();
 
-        WazeWrap.Geometry = new Geometry;
-        WazeWrap.Model = new Model;
-        WazeWrap.Interface = new Interface;
-        WazeWrap.User = new User;
-        WazeWrap.Util = new Util;
-        WazeWrap.Require = new Require;
-        WazeWrap.String = new String;
+        WazeWrap.Geometry = new Geometry();
+        WazeWrap.Model = new Model();
+        WazeWrap.Interface = new Interface();
+        WazeWrap.User = new User();
+        WazeWrap.Util = new Util();
+        WazeWrap.Require = new Require();
+        WazeWrap.String = new String();
+		
+	WazeWrap.getSelectedFeatures = function(){
+		if(!W.selectionManager.getSelectedFeatures)
+			return W.selectionManager.selectedItems;
+		return W.selectionManager.getSelectedFeatures();
+	}
+
+	WazeWrap.hasSelectedFeatures = function(){
+		if(!W.selectionManager.hasSelectedFeatures)
+			return W.selectionManager.hasSelectedItems();
+		return W.selectionManager.hasSelectedFeatures();
+	}
+	
+	WazeWrap.selectFeature = function(feature){
+		if(!W.selectionManager.select)
+			return W.selectionManager.selectFeature(feature);
+
+		return W.selectionManager.select(feature);
+	}
+	
+	WazeWrap.selectFeatures = function(featureArray){
+		if(!W.selectionManager.select)
+			return W.selectionManager.selectFeatures(featureArray);
+		return W.selectionManager.select(featureArray);
+	}
 
 	WazeWrap.Ready = true;
         window.WazeWrap = WazeWrap;
 
         console.log('WazeWrap Loaded');
     }
+	
+	
 
     function RestoreMissingSegmentFunctions(){
         if(W.model.segments.getObjectArray().length > 0){
@@ -508,7 +535,7 @@
                         segments.push(seg);
                     }
                 }
-                return W.selectionManager.select(segments);
+                return WazeWrap.selectFeatures(segments);
             }
         };
     }
