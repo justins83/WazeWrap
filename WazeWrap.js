@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.01.24.02
+// @version      2018.04.10.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -17,7 +17,11 @@
 (function() {
     'use strict';
   
-  var WazeWrap = {Ready: false, Version: "2018.01.24.02"};
+  var WazeWrap = {Ready: false, Version: "2018.04.10.01"};
+
+(function() {
+    'use strict';
+  
 	
     function bootstrap(tries) {
         tries = tries || 1;
@@ -53,24 +57,36 @@
         WazeWrap.Require = new Require;
         WazeWrap.String = new String;
 
-	WazeWrap.Ready = true;
+		WazeWrap.Ready = true;
         window.WazeWrap = WazeWrap;
 
         console.log('WazeWrap Loaded');
     }
+	
+	this.getSelectedFeatures = function(){
+		if(!W.selectionManager.getSelectedFeatures)
+			return W.selectionManager.selectedItems();
+		return W.selectionManager.getSelectedFeatures();
+	}
+	
+	this.hasSelectedFeatures = function(){
+		if(!W.selectionManager.hasSelectedFeatures)
+			return W.selectionManager.hasSelectedItems();
+		return W.selectionManager.hasSelectedFeatures();
+	}
 
     function RestoreMissingSegmentFunctions(){
         if(W.model.segments.getObjectArray().length > 0){
-            Waze.map.events.unregister("moveend", this, RestoreMissingSegmentFunctions);
-            Waze.map.events.unregister("zoomend", this, RestoreMissingSegmentFunctions);
+            W.map.events.unregister("moveend", this, RestoreMissingSegmentFunctions);
+            W.map.events.unregister("zoomend", this, RestoreMissingSegmentFunctions);
             if(typeof W.model.segments.getObjectArray()[0].model.getDirection == "undefined")
                 W.model.segments.getObjectArray()[0].__proto__.getDirection = function(){return (this.attributes.fwdDirection ? 1 : 0) + (this.attributes.revDirection ? 2 : 0);};
             if(typeof W.model.segments.getObjectArray()[0].model.isTollRoad == "undefined")
                 W.model.segments.getObjectArray()[0].__proto__.isTollRoad = function(){ return (this.attributes.fwdToll || this.attributes.revToll);};
         }
         else{
-            Waze.map.events.register("moveend", this, RestoreMissingSegmentFunctions);
-            Waze.map.events.register("zoomend", this, RestoreMissingSegmentFunctions);
+            W.map.events.register("moveend", this, RestoreMissingSegmentFunctions);
+            W.map.events.register("zoomend", this, RestoreMissingSegmentFunctions);
         }
     }
 
@@ -79,15 +95,15 @@
 
         //Converts to "normal" GPS coordinates
         this.ConvertTo4326 = function (long, lat){
-            var projI=new OpenLayers.Projection("EPSG:900913");
-            var projE=new OpenLayers.Projection("EPSG:4326");
-            return (new OpenLayers.LonLat(long, lat)).transform(projI,projE);
+            var projI=new OL.Projection("EPSG:900913");
+            var projE=new OL.Projection("EPSG:4326");
+            return (new OL.LonLat(long, lat)).transform(projI,projE);
         };
 
         this.ConvertTo900913 = function (long, lat){
-            var projI=new OpenLayers.Projection("EPSG:900913");
-            var projE=new OpenLayers.Projection("EPSG:4326");
-            return (new OpenLayers.LonLat(long, lat)).transform(projE,projI);
+            var projI=new OL.Projection("EPSG:900913");
+            var projE=new OL.Projection("EPSG:4326");
+            return (new OL.LonLat(long, lat)).transform(projE,projI);
         };
 
         //Converts the Longitudinal offset to an offset in 4326 gps coordinates
@@ -113,7 +129,7 @@
         /**
 		 * Checks if the given geometry is on screen
          * @function WazeWrap.Geometry.isGeometryInMapExtent
-         * @param {OpenLayers.Geometry} Geometry to check if any part of is in the current viewport
+         * @param {OL.Geometry} Geometry to check if any part of is in the current viewport
          */
         this.isLonLatInMapExtent = function (lonLat) {
             return lonLat && W.map.getExtent().containsLonLat(lonLat);
@@ -122,7 +138,7 @@
         /**
 		 * Checks if the given geometry is on screen
          * @function WazeWrap.Geometry.isGeometryInMapExtent
-         * @param {OpenLayers.Geometry} Geometry to check if any part of is in the current viewport
+         * @param {OL.Geometry} Geometry to check if any part of is in the current viewport
          */
         this.isGeometryInMapExtent = function (geometry) {
             return geometry && geometry.getBounds &&
@@ -132,13 +148,13 @@
         /**
 		 * Calculates the distance between two given points, returned in meters
          * @function WazeWrap.Geometry.calculateDistance
-         * @param {OpenLayers.Geometry.Point} An array of OL.Geometry.Point with which to measure the total distance. A minimum of 2 points is needed.
+         * @param {OL.Geometry.Point} An array of OL.Geometry.Point with which to measure the total distance. A minimum of 2 points is needed.
          */
         this.calculateDistance = function(pointArray) {
             if(pointArray.length < 2)
                 return 0;
 
-            var line = new OpenLayers.Geometry.LineString(pointArray);
+            var line = new OL.Geometry.LineString(pointArray);
             var length = line.getGeodesicLength(W.map.getProjectionObject());
             return length; //multiply by 3.28084 to convert to feet
         };
@@ -395,7 +411,7 @@
              * Gets the center of a segment in LonLat form.
              * @private
              * @param segment A Waze model segment object.
-             * @return {OpenLayers.LonLat} The LonLat object corresponding to the
+             * @return {OL.LonLat} The LonLat object corresponding to the
              * center of the segment.
              */
             getSegmentCenterLonLat: function (segment) {
@@ -693,7 +709,7 @@
             return myDragElement;
         };
 
-        this.DivIcon = OpenLayers.Class({
+        this.DivIcon = OL.Class({
             className: null ,
             $div: null ,
             events: null ,
@@ -751,7 +767,7 @@
             forceReflow: function() {
                 return this.$div.get(0).offsetWidth;
             },
-            CLASS_NAME: "Waze.DivIcon"
+            CLASS_NAME: "W.DivIcon"
         });
     }
 
@@ -1029,10 +1045,10 @@
 
 					this.appendTab();
 					let that = this;
-					if (Waze.prefs) {
-						Waze.prefs.on('change:isImperial', function(){that.appendTab();});
+					if (W.prefs) {
+						W.prefs.on('change:isImperial', function(){that.appendTab();});
 					}
-					Waze.app.modeController.model.bind('change:mode', function(){that.appendTab();});
+					W.app.modeController.model.bind('change:mode', function(){that.appendTab();});
 						}
 					}
 			
@@ -1093,7 +1109,7 @@
                     CreateParentGroup(isParentChecked);  //create the group
                     sessionStorage[groupClass] = isParentChecked;
 
-                    Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){ //make it reappear after changing modes
+                    W.app.modeController.model.bind('change:mode', function(model, modeId, context){ //make it reappear after changing modes
                         CreateParentGroup((sessionStorage[groupClass]=='true'));
                     });
                 }
@@ -1120,7 +1136,7 @@
             };
 
 
-            Waze.app.modeController.model.bind('change:mode', function(model, modeId, context){
+            W.app.modeController.model.bind('change:mode', function(model, modeId, context){
                 buildLayerItem((sessionStorage[normalizedText]=='true'));
             });
 
