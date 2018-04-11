@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.04.10.01
+// @version      2018.04.11.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-  var WazeWrap = {Ready: false, Version: "2018.04.10.05"};
+  var WazeWrap = {Ready: false, Version: "2018.04.11.01"};
 
 (function() {
     'use strict';
