@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.05.02.01
+// @version      2018.05.02.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-  var WazeWrap = {Ready: false, Version: "2018.05.02.01"};
+  var WazeWrap = {Ready: false, Version: "2018.05.02.02"};
 
 (function() {
     'use strict';
@@ -1178,7 +1178,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                     callback(false);
                 }
 
-                $('#' + groupClass).change(function(){$('#' + checkboxID).prop('disabled', !this.checked); debugger; callback(!this.checked ? false : sessionStorage[normalizedText]=='true');});
+                $('#' + groupClass).change(function(){$('#' + checkboxID).prop('disabled', !this.checked); callback(!this.checked ? false : sessionStorage[normalizedText]=='true');});
             };
 
 
