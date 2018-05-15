@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.05.15.02
+// @version      2018.05.15.03
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-  var WazeWrap = {Ready: false, Version: "2018.05.15.02"};
+  var WazeWrap = {Ready: false, Version: "2018.05.15.03"};
 
 (function() {
     'use strict';
@@ -1017,6 +1017,14 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 					return normalizePoint(addPoints(p, q), 0.1 * dotp * scale);
 				}
 			};
+			
+			function lat2latp(lat) {
+				return 180 / Math.PI * Math.log(Math.tan(Math.PI / 4 + lat * (Math.PI / 180) / 2));
+			}
+
+			function latp2lat(a) {
+				return 180 / Math.PI * (2 * Math.atan(Math.exp(a * Math.PI / 180)) - Math.PI / 2);
+			}
 
 			function squareness(points) {
 				return points.reduce(function (sum, val, i, array) {
