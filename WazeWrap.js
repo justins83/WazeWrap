@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.05.15.01
+// @version      2018.05.15.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-  var WazeWrap = {Ready: false, Version: "2018.05.15.01"};
+  var WazeWrap = {Ready: false, Version: "2018.05.15.02"};
 
 (function() {
     'use strict';
@@ -891,10 +891,8 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 				lowerThreshold = Math.cos((90 - nomthreshold) * Math.PI / 180),
 				upperThreshold = Math.cos(nomthreshold * Math.PI / 180);
 
-			this.way = geometry;
-
-			this.action = function () {
-				var nodes = this.way,
+			function Orthogonalize() {
+				var nodes = geometry,
 					points = nodes.slice(0, -1).map(function (n) {
 						var p = n.clone().transform(new OL.Projection("EPSG:900913"), new OL.Projection("EPSG:4326"));
 						p.y = lat2latp(p.y);
@@ -1084,6 +1082,8 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 
 				return squareness(points);
 			};
+			
+			return Orthogonalize();
 		};
     }
 
