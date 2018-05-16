@@ -989,7 +989,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 						}
 					}
 
-					return nodes;
+					return nodes.filter(item => item !== false);
 				}
 
 				function calcMotion(b, i, array) {
