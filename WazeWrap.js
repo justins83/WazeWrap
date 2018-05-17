@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.05.16.01
+// @version      2018.05.17.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -77,6 +77,13 @@
 		if(!W.selectionManager.select)
 			return W.selectionManager.selectFeatures(featureArray);
 		return W.selectionManager.select(featureArray);
+	}
+	
+	WazeWrap.hasPlaceSelected() = function(){
+		if(W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "venue")
+			return true;
+		else
+			return false;
 	}
 
 	WazeWrap.Ready = true;
