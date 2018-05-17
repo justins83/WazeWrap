@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.05.02.02
+// @version      2018.05.17.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-  var WazeWrap = {Ready: false, Version: "2018.05.02.02"};
+  var WazeWrap = {Ready: false, Version: "2018.05.17.01"};
 
 (function() {
     'use strict';
@@ -77,6 +77,13 @@
 		if(!W.selectionManager.select)
 			return W.selectionManager.selectFeatures(featureArray);
 		return W.selectionManager.select(featureArray);
+	}
+	
+	WazeWrap.hasPlaceSelected = function(){
+		if(W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "venue")
+			return true;
+		else
+			return false;
 	}
 
 	WazeWrap.Ready = true;
@@ -885,6 +892,214 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                 return modelReady;
             };
         } ();
+		
+		this.OrthogonalizeGeometry = function (geometry, threshold = 12) {
+			var nomthreshold = threshold, // degrees within right or straight to alter
+				lowerThreshold = Math.cos((90 - nomthreshold) * Math.PI / 180),
+				upperThreshold = Math.cos(nomthreshold * Math.PI / 180);
+
+			function Orthogonalize() {
+				var nodes = geometry,
+					points = nodes.slice(0, -1).map(function (n) {
+						var p = n.clone().transform(new OL.Projection("EPSG:900913"), new OL.Projection("EPSG:4326"));
+						p.y = lat2latp(p.y);
+						return p;
+					}),
+					corner = {i: 0, dotp: 1},
+					epsilon = 1e-4,
+					i, j, score, motions;
+
+				// Triangle
+				if (nodes.length === 4) {
+					for (i = 0; i < 1000; i++) {
+						motions = points.map(calcMotion);
+
+						var tmp = addPoints(points[corner.i], motions[corner.i]);
+						points[corner.i].x = tmp.x;
+						points[corner.i].y = tmp.y;
+
+						score = corner.dotp;
+						if (score < epsilon)
+							break;
+					}
+
+					var n = points[corner.i];
+					n.y = latp2lat(n.y);
+					var pp = n.transform(new OL.Projection("EPSG:4326"), new OL.Projection("EPSG:900913"));
+
+					var id = nodes[corner.i].id;
+					for (i = 0; i < nodes.length; i++) {
+						if (nodes[i].id != id)
+							continue;
+
+						nodes[i].x = pp.x;
+						nodes[i].y = pp.y;
+					}
+
+					return nodes;
+				} else {
+					var best,
+						originalPoints = nodes.slice(0, -1).map(function (n) {
+							var p = n.clone().transform(new OL.Projection("EPSG:900913"), new OL.Projection("EPSG:4326"));
+							p.y = lat2latp(p.y);
+							return p;
+						});
+						score = Infinity;
+
+					for (i = 0; i < 1000; i++) {
+						motions = points.map(calcMotion);
+						for (j = 0; j < motions.length; j++) {
+							var tmp = addPoints(points[j], motions[j]);
+							points[j].x = tmp.x;
+							points[j].y = tmp.y;
+						}
+						var newScore = squareness(points);
+						if (newScore < score) {
+							best = [].concat(points);
+							score = newScore;
+						}
+						if (score < epsilon)
+							break;
+					}
+
+					points = best;
+
+					for (i = 0; i < points.length; i++) {
+						// only move the points that actually moved
+						if (originalPoints[i].x !== points[i].x || originalPoints[i].y !== points[i].y) {
+							var n = points[i];
+							n.y = latp2lat(n.y);
+							var pp = n.transform(new OL.Projection("EPSG:4326"), new OL.Projection("EPSG:900913"));
+
+							var id = nodes[i].id;
+							for (j = 0; j < nodes.length; j++) {
+								if (nodes[j].id != id)
+									continue;
+
+								nodes[j].x = pp.x;
+								nodes[j].y = pp.y;
+							}
+						}
+					}
+
+					// remove empty nodes on straight sections
+					for (i = 0; i < points.length; i++) {
+						var dotp = normalizedDotProduct(i, points);
+						if (dotp < -1 + epsilon) {
+							id = nodes[i].id;
+							for (j = 0; j < nodes.length; j++) {
+								if (nodes[j].id != id)
+									continue;
+
+								nodes[j] = false;
+							}
+						}
+					}
+
+					return nodes.filter(item => item !== false);
+				}
+
+				function calcMotion(b, i, array) {
+					var a = array[(i - 1 + array.length) % array.length],
+						c = array[(i + 1) % array.length],
+						p = subtractPoints(a, b),
+						q = subtractPoints(c, b),
+						scale, dotp;
+
+					scale = 2 * Math.min(euclideanDistance(p, {x: 0, y: 0}), euclideanDistance(q, {x: 0, y: 0}));
+					p = normalizePoint(p, 1.0);
+					q = normalizePoint(q, 1.0);
+
+					dotp = filterDotProduct(p.x * q.x + p.y * q.y);
+
+					// nasty hack to deal with almost-straight segments (angle is closer to 180 than to 90/270).
+					if (array.length > 3) {
+						if (dotp < -0.707106781186547)
+							dotp += 1.0;
+					} else if (dotp && Math.abs(dotp) < corner.dotp) {
+						corner.i = i;
+						corner.dotp = Math.abs(dotp);
+					}
+
+					return normalizePoint(addPoints(p, q), 0.1 * dotp * scale);
+				}
+			};
+			
+			function lat2latp(lat) {
+				return 180 / Math.PI * Math.log(Math.tan(Math.PI / 4 + lat * (Math.PI / 180) / 2));
+			}
+
+			function latp2lat(a) {
+				return 180 / Math.PI * (2 * Math.atan(Math.exp(a * Math.PI / 180)) - Math.PI / 2);
+			}
+
+			function squareness(points) {
+				return points.reduce(function (sum, val, i, array) {
+					var dotp = normalizedDotProduct(i, array);
+
+					dotp = filterDotProduct(dotp);
+					return sum + 2.0 * Math.min(Math.abs(dotp - 1.0), Math.min(Math.abs(dotp), Math.abs(dotp + 1)));
+				}, 0);
+			}
+
+			function normalizedDotProduct(i, points) {
+				var a = points[(i - 1 + points.length) % points.length],
+					b = points[i],
+					c = points[(i + 1) % points.length],
+					p = subtractPoints(a, b),
+					q = subtractPoints(c, b);
+
+				p = normalizePoint(p, 1.0);
+				q = normalizePoint(q, 1.0);
+
+				return p.x * q.x + p.y * q.y;
+			}
+
+			function subtractPoints(a, b) {
+				return {x: a.x - b.x, y: a.y - b.y};
+			}
+
+			function addPoints(a, b) {
+				return {x: a.x + b.x, y: a.y + b.y};
+			}
+
+			function euclideanDistance(a, b) {
+				var x = a.x - b.x, y = a.y - b.y;
+				return Math.sqrt((x * x) + (y * y));
+			}
+
+			function normalizePoint(point, scale) {
+				var vector = {x: 0, y: 0};
+				var length = Math.sqrt(point.x * point.x + point.y * point.y);
+				if (length !== 0) {
+					vector.x = point.x / length;
+					vector.y = point.y / length;
+				}
+
+				vector.x *= scale;
+				vector.y *= scale;
+
+				return vector;
+			}
+
+			function filterDotProduct(dotp) {
+				if (lowerThreshold > Math.abs(dotp) || Math.abs(dotp) > upperThreshold)
+					return dotp;
+
+				return 0;
+			}
+
+			this.isDisabled = function (nodes) {
+				var points = nodes.slice(0, -1).map(function (n) {
+					var p = n.toLonLat().transform(new OL.Projection("EPSG:900913"), new OL.Projection("EPSG:4326"));
+					return {x: p.lat, y: p.lon};
+				});
+
+				return squareness(points);
+			};
+			
+			return Orthogonalize();
+		};
     }
 
     function Interface() {
