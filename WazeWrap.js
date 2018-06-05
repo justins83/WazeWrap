@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.05.18.01
+// @version      2018.06.05.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -43,6 +43,8 @@
         WazeWrap.isBetaEditor = /beta/.test(location.href);
 
         //SetUpRequire();
+    	W.map.events.register("moveend", this, RestoreMissingSegmentFunctions);
+    	W.map.events.register("zoomend", this, RestoreMissingSegmentFunctions);
         RestoreMissingSegmentFunctions();
 	RestoreMissingOLKMLSupport();
 
@@ -102,10 +104,6 @@
                 W.model.segments.getObjectArray()[0].__proto__.getDirection = function(){return (this.attributes.fwdDirection ? 1 : 0) + (this.attributes.revDirection ? 2 : 0);};
             if(typeof W.model.segments.getObjectArray()[0].model.isTollRoad == "undefined")
                 W.model.segments.getObjectArray()[0].__proto__.isTollRoad = function(){ return (this.attributes.fwdToll || this.attributes.revToll);};
-        }
-        else{
-            W.map.events.register("moveend", this, RestoreMissingSegmentFunctions);
-            W.map.events.register("zoomend", this, RestoreMissingSegmentFunctions);
         }
     }
 	
