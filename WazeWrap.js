@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.06.05.01
+// @version      2018.06.11.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-  var WazeWrap = {Ready: false, Version: "2018.05.17.04"};
+  var WazeWrap = {Ready: false, Version: "2018.06.11.01"};
 
 (function() {
     'use strict';
@@ -731,7 +731,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                     var t = $(this.map.viewPortDiv);
                     return this.$el.on("mousedown.drag-" + this.uniqueID, $.proxy(this.mousedown, this)),
                         this.$el.on("touchstart.drag-" + this.uniqueID, $.proxy(this.touchstart, this)),
-                        $(document).on("mouseup.drag-" + this.uniqueID, $.proxy(this.mouseup, this)),
+                        t.on("mouseup.drag-" + this.uniqueID, $.proxy(this.mouseup, this)),
                         t.on("mousemove.drag-" + this.uniqueID, $.proxy(this.mousemove, this)),
                         t.on("touchmove.drag-" + this.uniqueID, $.proxy(this.touchmove, this)),
                         t.on("touchend.drag-" + this.uniqueID, $.proxy(this.touchend, this))
@@ -740,7 +740,6 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                     return this.active = !1,
                         this.$el.off(".drag-" + this.uniqueID),
                         $(this.map.viewPortDiv).off(".drag-" + this.uniqueID),
-                        $(document).off(".drag-" + this.uniqueID),
                         this.touch = !1,
                         this.started = !1,
                         this.forced = !1,
