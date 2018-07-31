@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.06.11.01
+// @version      2018.07.31.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -246,35 +246,35 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
     function Model(){
 
         this.getPrimaryStreetID = function(segmentID){
-            return W.model.segments.get(segmentID).attributes.primaryStreetID;
+            return W.model.segments.getObjectById(segmentID).attributes.primaryStreetID;
         };
 
         this.getStreetName = function(primaryStreetID){
-            return W.model.streets.get(primaryStreetID).name;
+            return W.model.streets.getObjectById(primaryStreetID).name;
         };
 
         this.getCityID = function(primaryStreetID){
-            return W.model.streets.get(primaryStreetID).cityID;
+            return W.model.streets.getObjectById(primaryStreetID).cityID;
         };
 
         this.getCityName = function(primaryStreetID){
-            return W.model.cities.get(this.getCityID(primaryStreetID)).attributes.Name;
+            return W.model.cities.getObjectById(this.getCityID(primaryStreetID)).attributes.Name;
         };
 
         this.getStateName = function(primaryStreetID){
-            return W.model.states.get(getStateID(primaryStreetID)).Name;
+            return W.model.states.getObjectById(getStateID(primaryStreetID)).Name;
         };
 
         this.getStateID = function(primaryStreetID){
-            return W.model.cities.get(primaryStreetID).attributes.stateID;
+            return W.model.cities.getObjectById(primaryStreetID).attributes.stateID;
         };
 
         this.getCountryID = function(primaryStreetID){
-            return W.model.cities.get(this.getCityID(primaryStreetID)).attributes.CountryID;
+            return W.model.cities.getObjectById(this.getCityID(primaryStreetID)).attributes.CountryID;
         };
 
         this.getCountryName = function(primaryStreetID){
-            return W.model.countries.get(getCountryID(primaryStreetID)).name;
+            return W.model.countries.getObjectById(getCountryID(primaryStreetID)).name;
         };
 
         this.getCityNameFromSegmentObj = function(segObj){
@@ -297,14 +297,14 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             var RASegs = this.getAllRoundaboutSegmentsFromObj(segObj);
             var RAJunctionNodes = [];
             for(i=0; i< RASegs.length; i++){
-                RAJunctionNodes.push(W.model.nodes.objects[W.model.segments.get(RASegs[i]).attributes.toNodeID]);
+                RAJunctionNodes.push(W.model.nodes.objects[W.model.segments.getObjectById(RASegs[i]).attributes.toNodeID]);
 
             }
             return RAJunctionNodes;
         };
 
         this.isRoundaboutSegmentID = function(segmentID){
-            if(W.model.segments.get(segmentID).attributes.junctionID === null)
+            if(W.model.segments.getObjectById(segmentID).attributes.junctionID === null)
                 return false;
             else
                 return true;
@@ -327,7 +327,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                 if (!segments.hasOwnProperty(s))
                     continue;
 
-                seg = W.model.segments.get(s);
+                seg = W.model.segments.getObjectById(s);
                 if (mapExtent.intersectsBounds(seg.geometry.getBounds()))
                     onScreenSegments.push(seg);
             }
@@ -548,9 +548,9 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
              * @return {String} Relative URl to use for route ajax request.
              */
             getURL: function () {
-                if (W.model.countries.get(235) || W.model.countries.get(40)) {
+                if (W.model.countries.getObjectById(235) || W.model.countries.getObjectById(40)) {
                     return '/RoutingManager/routingRequest';
-                } else if (W.model.countries.get(106)) {
+                } else if (W.model.countries.getObjectById(106)) {
                     return '/il-RoutingManager/routingRequest';
                 } else {
                     return '/row-RoutingManager/routingRequest';
@@ -570,7 +570,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                     return;
                 }
                 for (i = 0, n = segIDs.length; i < n; i++) {
-                    seg = W.model.segments.get(segIDs[i]);
+                    seg = W.model.segments.getObjectById(segIDs[i]);
                     if ('undefined' !== seg) {
                         segments.push(seg);
                     }
