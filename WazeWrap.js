@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2018.08.21.01
+// @version      2019.01.15.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-  var WazeWrap = {Ready: false, Version: "2018.08.21.01"};
+  var WazeWrap = {Ready: false, Version: "2019.01.15.01"};
 
 (function() {
     'use strict';
@@ -57,14 +57,10 @@
         WazeWrap.String = new String();
 		
 	WazeWrap.getSelectedFeatures = function(){
-		if(!W.selectionManager.getSelectedFeatures)
-			return W.selectionManager.selectedItems;
 		return W.selectionManager.getSelectedFeatures();
 	}
 
 	WazeWrap.hasSelectedFeatures = function(){
-		if(!W.selectionManager.hasSelectedFeatures)
-			return W.selectionManager.hasSelectedItems();
 		return W.selectionManager.hasSelectedFeatures();
 	}
 	
@@ -82,17 +78,15 @@
 	}
 	
 	WazeWrap.hasPlaceSelected = function(){
-		if(W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "venue")
-			return true;
-		else
-			return false;
+		return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "venue");
+	}
+	    
+	WazeWrap.hasSegmentSelected = function(){
+		return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "segment");
 	}
 	    
 	WazeWrap.hasMapCommentSelected = function(){
-		if(W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "mapComment")
-			return true;
-		else
-			return false;
+		return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "mapComment");
 	}
 
 	WazeWrap.Ready = true;
