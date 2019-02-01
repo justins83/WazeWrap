@@ -100,7 +100,7 @@ var WazeWrap = {Ready: false, Version: "2019.02.01.02"};
         $section.html([
             '<div id="scriptUpdate-Container" class="fa" style="position:fixed; top:20%; left:40%; z-index:1000; display:none;">',
             '<div id="scriptUpdate-Close" class="fa-close fa-lg"></div>',
-            '<div class="modal-heading ">',
+            '<div class="modal-heading">',
             '<h2>Script Updates</h2>',
             '<h4><span id="scriptUpdate-updateCount">0</span> of your scripts have updates</h4>',
             '</div>',
@@ -134,10 +134,12 @@ var WazeWrap = {Ready: false, Version: "2019.02.01.02"};
         let css = [
             '#scriptUpdate-Container { position:relative; background-color:#fbfbfb; width:650px; height:375px; border-radius:8px; padding:20px; box-shadow: 0 22px 84px 0 rgba(87, 99, 125, 0.5); border:1px solid #ededed; }',
             '#scriptUpdate-Close { color:#000000; background-color:#ffffff; border:1px solid #ececec; border-radius:10px; height:25px; width:25px; position: absolute; right:14px; top:10px; cursor:pointer; padding: 5px 0px 0px 5px;}',
+            '#scriptUpdate-Container .modal-heading,.scriptUpdate-updates-wrapper { font-family: "Helvetica Neue", Helvetica, "Open Sans", sans-serif; } ',
             '.scriptUpdate-updates-wrapper { height:350px; }',
-            '.scriptUpdate-script-list { float:left; width:175px; height:100%; margin-right:10px; overflow-y: auto; overflow-x: hidden; height:300px; }',
-            '.scriptUpdate-script-item { min-height:40px; display:flex; text-align: center; justify-content: center; align-items: center; margin:3px 3px 10px 3px; background-color:white; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.5) 0px 2px 4px 0.5px; transition:all 200ms ease-in-out; cursor:pointer;}',
-            '.scriptUpdate-active { transform: translate3d(5px, 0px, 0px); box-shadow: rgba(0, 0, 0, 0.09) 0px 6px 7px 0.09px; }',
+            '.scriptUpdate-script-list { float:left; width:175px; height:100%; padding-right:2px; margin-right:10px; overflow-y: auto; overflow-x: hidden; height:300px; }',
+            '.scriptUpdate-script-item { text-decoration: none; min-height:40px; display:flex; text-align: center; justify-content: center; align-items: center; margin:3px 3px 10px 3px; background-color:white; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 1px 0.25px; transition:all 200ms ease-in-out; cursor:pointer;}',
+            '.scriptUpdate-script-item:hover { text-decoration: none; }',
+            '.scriptUpdate-active { transform: translate3d(5px, 0px, 0px); box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 7px 0px; }',
             '#scriptUpdate-script-update-info { width:auto; background-color:white; height:275px; overflow-y:auto; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.09) 0px 6px 7px 0.09px; padding:15px;}',
             '#scriptUpdate-script-update-info div { display: none; }',
             '#scriptUpdate-script-update-info div:target { display: block; }',
@@ -1446,9 +1448,9 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
         this.ShowScriptUpdate = function(scriptName, version, updateHTML){
             let currCount = $('.scriptUpdate-script-item').length;
             let divID = (scriptName + ("" + version)).toLowerCase().replace(/[^a-z-_0-9]/g, '');
-            $('.scriptUpdate-script-list').append(`<a href="#${divID}"><div class="scriptUpdate-script-item ${currCount === 0 ? 'scriptUpdate-active' : ''}">${scriptName}</div></a>`); //add the script's tab
+            $('.scriptUpdate-script-list').append(`<a href="#${divID}" class="scriptUpdate-script-item ${currCount === 0 ? 'scriptUpdate-active' : ''}">${scriptName}</a>`); //add the script's tab
             $("#scriptUpdate-updateCount").html(parseInt($("#scriptUpdate-updateCount").html()) + 1); //increment the total script updates value
-            $('#scriptUpdate-script-update-info').append(`<div id="${divID}"><h3>${version}</h3>${updateHTML}</div>`);
+            $('#scriptUpdate-script-update-info').append(`<div id="${divID}"><h3>${version}</h3><br>${updateHTML}</div>`);
             $('#scriptUpdate-Container').show();
         };
     }
