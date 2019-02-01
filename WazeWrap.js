@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.01.03
+// @version      2019.02.01.04
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-var WazeWrap = {Ready: false, Version: "2019.02.01.03"};
+var WazeWrap = {Ready: false, Version: "2019.02.01.04"};
 
 (function() {
     'use strict';
@@ -105,17 +105,10 @@ var WazeWrap = {Ready: false, Version: "2019.02.01.03"};
             '<h4><span id="WWSU-updateCount">0</span> of your scripts have updates</h4>',
             '</div>',
             '<div class="WWSU-updates-wrapper">',
-            '<div class="WWSU-script-list">',
+            '<div id="WWSU-script-list">',
             '</div>',
             '<div id="WWSU-script-update-info">',
-            '<div class="update-wrapper">',
-            '<i>01/07/2019</i>',
-            '<p>Update ipsum sit dolor amet.</p>',
-            '</div>',
-            '<div class="WWSU-update-wrapper">',
-            '<i>01/07/2019</i>',
-            '<p>Update ipsum sit dolor amet.</p>',
-            '</div></div></div></div>'
+            '</div></div></div>'
         ].join(' '));
         $("#WazeMap").append($section.html());
 
@@ -126,7 +119,6 @@ var WazeWrap = {Ready: false, Version: "2019.02.01.03"};
         $(document).on('click', '.WWSU-script-item', function(){
             $('.WWSU-script-item').removeClass("WWSU-active");
             $(this).addClass("WWSU-active");
-            $('.WWSU-script-update-info').empty();
         });
     }
 
@@ -136,14 +128,13 @@ var WazeWrap = {Ready: false, Version: "2019.02.01.03"};
             '#WWSU-Close { color:#000000; background-color:#ffffff; border:1px solid #ececec; border-radius:10px; height:25px; width:25px; position: absolute; right:14px; top:10px; cursor:pointer; padding: 5px 0px 0px 5px;}',
             '#WWSU-Container .modal-heading,.WWSU-updates-wrapper { font-family: "Helvetica Neue", Helvetica, "Open Sans", sans-serif; } ',
             '.WWSU-updates-wrapper { height:350px; }',
-            '.WWSU-script-list { float:left; width:175px; height:100%; padding-right:2px; margin-right:10px; overflow-y: auto; overflow-x: hidden; height:300px; }',
+            '#WWSU-script-list { float:left; width:175px; height:100%; padding-right:2px; margin-right:10px; overflow-y: auto; overflow-x: hidden; height:300px; }',
             '.WWSU-script-item { text-decoration: none; min-height:40px; display:flex; text-align: center; justify-content: center; align-items: center; margin:3px 3px 10px 3px; background-color:white; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 1px 0.25px; transition:all 200ms ease-in-out; cursor:pointer;}',
             '.WWSU-script-item:hover { text-decoration: none; }',
             '.WWSU-active { transform: translate3d(5px, 0px, 0px); box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 7px 0px; }',
             '#WWSU-script-update-info { width:auto; background-color:white; height:275px; overflow-y:auto; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.09) 0px 6px 7px 0.09px; padding:15px;}',
             '#WWSU-script-update-info div { display: none; }',
-            '#WWSU-script-update-info div:target { display: block; }',
-            '.WWSU-update-wrapper { padding:0px 0px 5px 0px; }'
+            '#WWSU-script-update-info div:target { display: block; }'
         ].join(' ');
         $('<style type="text/css">' + css + '</style>').appendTo('head');
     }
@@ -1448,10 +1439,12 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
         this.ShowScriptUpdate = function(scriptName, version, updateHTML){
             let currCount = $('.WWSU-script-item').length;
             let divID = (scriptName + ("" + version)).toLowerCase().replace(/[^a-z-_0-9]/g, '');
-            $('.WWSU-script-list').append(`<a href="#${divID}" class="WWSU-script-item ${currCount === 0 ? 'WWSU-active' : ''}">${scriptName}</a>`); //add the script's tab
+            $('#WWSU-script-list').append(`<a href="#${divID}" class="WWSU-script-item ${currCount === 0 ? 'WWSU-active' : ''}">${scriptName}</a>`); //add the script's tab
             $("#WWSU-updateCount").html(parseInt($("#WWSU-updateCount").html()) + 1); //increment the total script updates value
             $('#WWSU-script-update-info').append(`<div id="${divID}"><h3>${version}</h3><br>${updateHTML}</div>`);
             $('#WWSU-Container').show();
+            if(currCount === 0)
+                $('#WWSU-script-list').find("a")[0].click();
         };
     }
 
