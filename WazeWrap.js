@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.01.01
+// @version      2019.02.01.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-var WazeWrap = {Ready: false, Version: "2019.02.01.01"};
+var WazeWrap = {Ready: false, Version: "2019.02.01.02"};
 
 (function() {
     'use strict';
@@ -135,7 +135,7 @@ var WazeWrap = {Ready: false, Version: "2019.02.01.01"};
             '#scriptUpdate-Container { position:relative; background-color:#fbfbfb; width:650px; height:375px; border-radius:8px; padding:20px; box-shadow: 0 22px 84px 0 rgba(87, 99, 125, 0.5); border:1px solid #ededed; }',
             '#scriptUpdate-Close { color:#000000; background-color:#ffffff; border:1px solid #ececec; border-radius:10px; height:25px; width:25px; position: absolute; right:14px; top:10px; cursor:pointer; padding: 5px 0px 0px 5px;}',
             '.scriptUpdate-updates-wrapper { height:350px; }',
-            '.scriptUpdate-script-list { float:left; width:175px; height:100%; margin-right:10px; }',
+            '.scriptUpdate-script-list { float:left; width:175px; height:100%; margin-right:10px; overflow-y: auto; overflow-x: hidden; height:300px; }',
             '.scriptUpdate-script-item { min-height:40px; display:flex; text-align: center; justify-content: center; align-items: center; margin:3px 3px 10px 3px; background-color:white; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.5) 0px 2px 4px 0.5px; transition:all 200ms ease-in-out; cursor:pointer;}',
             '.scriptUpdate-active { transform: translate3d(5px, 0px, 0px); box-shadow: rgba(0, 0, 0, 0.09) 0px 6px 7px 0.09px; }',
             '#scriptUpdate-script-update-info { width:auto; background-color:white; height:275px; overflow-y:auto; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.09) 0px 6px 7px 0.09px; padding:15px;}',
