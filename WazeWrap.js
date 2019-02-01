@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.01.02
+// @version      2019.02.01.03
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-var WazeWrap = {Ready: false, Version: "2019.02.01.02"};
+var WazeWrap = {Ready: false, Version: "2019.02.01.03"};
 
 (function() {
     'use strict';
@@ -98,52 +98,52 @@ var WazeWrap = {Ready: false, Version: "2019.02.01.02"};
         injectCSS();
         var $section = $("<div>", {style:"padding:8px 16px", id:"wmeWWScriptUpdates"});
         $section.html([
-            '<div id="scriptUpdate-Container" class="fa" style="position:fixed; top:20%; left:40%; z-index:1000; display:none;">',
-            '<div id="scriptUpdate-Close" class="fa-close fa-lg"></div>',
+            '<div id="WWSU-Container" class="fa" style="position:fixed; top:20%; left:40%; z-index:1000; display:none;">',
+            '<div id="WWSU-Close" class="fa-close fa-lg"></div>',
             '<div class="modal-heading">',
             '<h2>Script Updates</h2>',
-            '<h4><span id="scriptUpdate-updateCount">0</span> of your scripts have updates</h4>',
+            '<h4><span id="WWSU-updateCount">0</span> of your scripts have updates</h4>',
             '</div>',
-            '<div class="scriptUpdate-updates-wrapper">',
-            '<div class="scriptUpdate-script-list">',
+            '<div class="WWSU-updates-wrapper">',
+            '<div class="WWSU-script-list">',
             '</div>',
-            '<div id="scriptUpdate-script-update-info">',
+            '<div id="WWSU-script-update-info">',
             '<div class="update-wrapper">',
             '<i>01/07/2019</i>',
             '<p>Update ipsum sit dolor amet.</p>',
             '</div>',
-            '<div class="scriptUpdate-update-wrapper">',
+            '<div class="WWSU-update-wrapper">',
             '<i>01/07/2019</i>',
             '<p>Update ipsum sit dolor amet.</p>',
             '</div></div></div></div>'
         ].join(' '));
         $("#WazeMap").append($section.html());
 
-        $('#scriptUpdate-Close').click(function(){
-            $('#scriptUpdate-Container').hide();
+        $('#WWSU-Close').click(function(){
+            $('#WWSU-Container').hide();
         });
 
-        $(document).on('click', '.scriptUpdate-script-item', function(){
-            $('.scriptUpdate-script-item').removeClass("scriptUpdate-active");
-            $(this).addClass("scriptUpdate-active");
-            $('.scriptUpdate-script-update-info').empty();
+        $(document).on('click', '.WWSU-script-item', function(){
+            $('.WWSU-script-item').removeClass("WWSU-active");
+            $(this).addClass("WWSU-active");
+            $('.WWSU-script-update-info').empty();
         });
     }
 
     function injectCSS() {
         let css = [
-            '#scriptUpdate-Container { position:relative; background-color:#fbfbfb; width:650px; height:375px; border-radius:8px; padding:20px; box-shadow: 0 22px 84px 0 rgba(87, 99, 125, 0.5); border:1px solid #ededed; }',
-            '#scriptUpdate-Close { color:#000000; background-color:#ffffff; border:1px solid #ececec; border-radius:10px; height:25px; width:25px; position: absolute; right:14px; top:10px; cursor:pointer; padding: 5px 0px 0px 5px;}',
-            '#scriptUpdate-Container .modal-heading,.scriptUpdate-updates-wrapper { font-family: "Helvetica Neue", Helvetica, "Open Sans", sans-serif; } ',
-            '.scriptUpdate-updates-wrapper { height:350px; }',
-            '.scriptUpdate-script-list { float:left; width:175px; height:100%; padding-right:2px; margin-right:10px; overflow-y: auto; overflow-x: hidden; height:300px; }',
-            '.scriptUpdate-script-item { text-decoration: none; min-height:40px; display:flex; text-align: center; justify-content: center; align-items: center; margin:3px 3px 10px 3px; background-color:white; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 1px 0.25px; transition:all 200ms ease-in-out; cursor:pointer;}',
-            '.scriptUpdate-script-item:hover { text-decoration: none; }',
-            '.scriptUpdate-active { transform: translate3d(5px, 0px, 0px); box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 7px 0px; }',
-            '#scriptUpdate-script-update-info { width:auto; background-color:white; height:275px; overflow-y:auto; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.09) 0px 6px 7px 0.09px; padding:15px;}',
-            '#scriptUpdate-script-update-info div { display: none; }',
-            '#scriptUpdate-script-update-info div:target { display: block; }',
-            '.scriptUpdate-update-wrapper { padding:0px 0px 5px 0px; }'
+            '#WWSU-Container { position:relative; background-color:#fbfbfb; width:650px; height:375px; border-radius:8px; padding:20px; box-shadow: 0 22px 84px 0 rgba(87, 99, 125, 0.5); border:1px solid #ededed; }',
+            '#WWSU-Close { color:#000000; background-color:#ffffff; border:1px solid #ececec; border-radius:10px; height:25px; width:25px; position: absolute; right:14px; top:10px; cursor:pointer; padding: 5px 0px 0px 5px;}',
+            '#WWSU-Container .modal-heading,.WWSU-updates-wrapper { font-family: "Helvetica Neue", Helvetica, "Open Sans", sans-serif; } ',
+            '.WWSU-updates-wrapper { height:350px; }',
+            '.WWSU-script-list { float:left; width:175px; height:100%; padding-right:2px; margin-right:10px; overflow-y: auto; overflow-x: hidden; height:300px; }',
+            '.WWSU-script-item { text-decoration: none; min-height:40px; display:flex; text-align: center; justify-content: center; align-items: center; margin:3px 3px 10px 3px; background-color:white; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 1px 0.25px; transition:all 200ms ease-in-out; cursor:pointer;}',
+            '.WWSU-script-item:hover { text-decoration: none; }',
+            '.WWSU-active { transform: translate3d(5px, 0px, 0px); box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 7px 0px; }',
+            '#WWSU-script-update-info { width:auto; background-color:white; height:275px; overflow-y:auto; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.09) 0px 6px 7px 0.09px; padding:15px;}',
+            '#WWSU-script-update-info div { display: none; }',
+            '#WWSU-script-update-info div:target { display: block; }',
+            '.WWSU-update-wrapper { padding:0px 0px 5px 0px; }'
         ].join(' ');
         $('<style type="text/css">' + css + '</style>').appendTo('head');
     }
@@ -1446,12 +1446,12 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
         };
 
         this.ShowScriptUpdate = function(scriptName, version, updateHTML){
-            let currCount = $('.scriptUpdate-script-item').length;
+            let currCount = $('.WWSU-script-item').length;
             let divID = (scriptName + ("" + version)).toLowerCase().replace(/[^a-z-_0-9]/g, '');
-            $('.scriptUpdate-script-list').append(`<a href="#${divID}" class="scriptUpdate-script-item ${currCount === 0 ? 'scriptUpdate-active' : ''}">${scriptName}</a>`); //add the script's tab
-            $("#scriptUpdate-updateCount").html(parseInt($("#scriptUpdate-updateCount").html()) + 1); //increment the total script updates value
-            $('#scriptUpdate-script-update-info').append(`<div id="${divID}"><h3>${version}</h3><br>${updateHTML}</div>`);
-            $('#scriptUpdate-Container').show();
+            $('.WWSU-script-list').append(`<a href="#${divID}" class="WWSU-script-item ${currCount === 0 ? 'WWSU-active' : ''}">${scriptName}</a>`); //add the script's tab
+            $("#WWSU-updateCount").html(parseInt($("#WWSU-updateCount").html()) + 1); //increment the total script updates value
+            $('#WWSU-script-update-info').append(`<div id="${divID}"><h3>${version}</h3><br>${updateHTML}</div>`);
+            $('#WWSU-Container').show();
         };
     }
 
