@@ -13,40 +13,36 @@
 /* global W */
 /* global WazeWrap */
 
-  var WazeWrap = {Ready: false, Version: "2019.01.15.01"};
+var WazeWrap = {Ready: false, Version: "2019.02.01.01"};
 
 (function() {
     'use strict';
-  
-	
-    function bootstrap(tries) {
-        tries = tries || 1;
-	if(!location.href.match(/^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/))
-		return;
-	    
+
+    function bootstrap(tries = 1) {
+        if(!location.href.match(/^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/))
+            return;
+
         if (W && W.map &&
             W.model && W.loginManager.user &&
-            $) {
+            $)
             init();
-        } else if (tries < 1000) {
+        else if (tries < 1000)
             setTimeout(function () { bootstrap(tries++); }, 200);
-        } else {
+        else
             console.log('WazeWrap failed to load');
-        }
     }
 
     bootstrap();
 
     function init(){
         console.log("WazeWrap initializing...");
-
         WazeWrap.isBetaEditor = /beta/.test(location.href);
 
         //SetUpRequire();
-    	W.map.events.register("moveend", this, RestoreMissingSegmentFunctions);
-    	W.map.events.register("zoomend", this, RestoreMissingSegmentFunctions);
+        W.map.events.register("moveend", this, RestoreMissingSegmentFunctions);
+        W.map.events.register("zoomend", this, RestoreMissingSegmentFunctions);
         RestoreMissingSegmentFunctions();
-	RestoreMissingOLKMLSupport();
+        RestoreMissingOLKMLSupport();
 
         WazeWrap.Geometry = new Geometry();
         WazeWrap.Model = new Model();
@@ -55,47 +51,93 @@
         WazeWrap.Util = new Util();
         WazeWrap.Require = new Require();
         WazeWrap.String = new String();
-		
-	WazeWrap.getSelectedFeatures = function(){
-		return W.selectionManager.getSelectedFeatures();
-	}
 
-	WazeWrap.hasSelectedFeatures = function(){
-		return W.selectionManager.hasSelectedFeatures();
-	}
-	
-	WazeWrap.selectFeature = function(feature){
-		if(!W.selectionManager.select)
-			return W.selectionManager.selectFeature(feature);
+        WazeWrap.getSelectedFeatures = function(){
+            return W.selectionManager.getSelectedFeatures();
+        }
 
-		return W.selectionManager.select(feature);
-	}
-	
-	WazeWrap.selectFeatures = function(featureArray){
-		if(!W.selectionManager.select)
-			return W.selectionManager.selectFeatures(featureArray);
-		return W.selectionManager.select(featureArray);
-	}
-	
-	WazeWrap.hasPlaceSelected = function(){
-		return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "venue");
-	}
-	    
-	WazeWrap.hasSegmentSelected = function(){
-		return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "segment");
-	}
-	    
-	WazeWrap.hasMapCommentSelected = function(){
-		return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "mapComment");
-	}
+        WazeWrap.hasSelectedFeatures = function(){
+            return W.selectionManager.hasSelectedFeatures();
+        }
 
-	WazeWrap.Ready = true;
+        WazeWrap.selectFeature = function(feature){
+            if(!W.selectionManager.select)
+                return W.selectionManager.selectFeature(feature);
+
+            return W.selectionManager.select(feature);
+        }
+
+        WazeWrap.selectFeatures = function(featureArray){
+            if(!W.selectionManager.select)
+                return W.selectionManager.selectFeatures(featureArray);
+            return W.selectionManager.select(featureArray);
+        }
+
+        WazeWrap.hasPlaceSelected = function(){
+            return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "venue");
+        }
+
+        WazeWrap.hasSegmentSelected = function(){
+            return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "segment");
+        }
+
+        WazeWrap.hasMapCommentSelected = function(){
+            return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "mapComment");
+        }
+
+        initializeScriptUpdateInterface();
+
+        WazeWrap.Ready = true;
         window.WazeWrap = WazeWrap;
 
         console.log('WazeWrap Loaded');
     }
-	
-	
+
+    function initializeScriptUpdateInterface(){
+        console.log("creating script udpate interface");
+        injectCSS();
+        var $section = $("<div>", {style:"padding:8px 16px", id:"wmeWWScriptUpdates"});
+        $section.html([
+            '<div id="WWSU-Container" class="fa" style="position:fixed; top:20%; left:40%; z-index:1000; display:none;">',
+            '<div id="WWSU-Close" class="fa-close fa-lg"></div>',
+            '<div class="modal-heading">',
+            '<h2>Script Updates</h2>',
+            '<h4><span id="WWSU-updateCount">0</span> of your scripts have updates</h4>',
+            '</div>',
+            '<div class="WWSU-updates-wrapper">',
+            '<div id="WWSU-script-list">',
+            '</div>',
+            '<div id="WWSU-script-update-info">',
+            '</div></div></div>'
+        ].join(' '));
+        $("#WazeMap").append($section.html());
+
+        $('#WWSU-Close').click(function(){
+            $('#WWSU-Container').hide();
+        });
+
+        $(document).on('click', '.WWSU-script-item', function(){
+            $('.WWSU-script-item').removeClass("WWSU-active");
+            $(this).addClass("WWSU-active");
+        });
+    }
+
+    function injectCSS() {
+        let css = [
+            '#WWSU-Container { position:relative; background-color:#fbfbfb; width:650px; height:375px; border-radius:8px; padding:20px; box-shadow: 0 22px 84px 0 rgba(87, 99, 125, 0.5); border:1px solid #ededed; }',
+            '#WWSU-Close { color:#000000; background-color:#ffffff; border:1px solid #ececec; border-radius:10px; height:25px; width:25px; position: absolute; right:14px; top:10px; cursor:pointer; padding: 5px 0px 0px 5px;}',
+            '#WWSU-Container .modal-heading,.WWSU-updates-wrapper { font-family: "Helvetica Neue", Helvetica, "Open Sans", sans-serif; } ',
+            '.WWSU-updates-wrapper { height:350px; }',
+            '#WWSU-script-list { float:left; width:175px; height:100%; padding-right:2px; margin-right:10px; overflow-y: auto; overflow-x: hidden; height:300px; }',
+            '.WWSU-script-item { text-decoration: none; min-height:40px; display:flex; text-align: center; justify-content: center; align-items: center; margin:3px 3px 10px 3px; background-color:white; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 1px 0.25px; transition:all 200ms ease-in-out; cursor:pointer;}',
+            '.WWSU-script-item:hover { text-decoration: none; }',
+            '.WWSU-active { transform: translate3d(5px, 0px, 0px); box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 7px 0px; }',
+            '#WWSU-script-update-info { width:auto; background-color:white; height:275px; overflow-y:auto; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.09) 0px 6px 7px 0.09px; padding:15px; position:relative;}',
+            '#WWSU-script-update-info div { display: none; }',
+            '#WWSU-script-update-info div:target { display: block; }'
+        ].join(' ');
+        $('<style type="text/css">' + css + '</style>').appendTo('head');
+    }
 
     function RestoreMissingSegmentFunctions(){
         if(W.model.segments.getObjectArray().length > 0){
@@ -107,28 +149,28 @@
                 W.model.segments.getObjectArray()[0].__proto__.isTollRoad = function(){ return (this.attributes.fwdToll || this.attributes.revToll);};
         }
     }
-	
-	function RestoreMissingOLKMLSupport(){
-		if(!OL.Format.KML){
-			OL.Format.KML=OL.Class(OL.Format.XML,{namespaces:{kml:"http://www.opengis.net/kml/2.2",gx:"http://www.google.com/kml/ext/2.2"},kmlns:"http://earth.google.com/kml/2.0",placemarksDesc:"No description available",foldersName:"OL export",foldersDesc:"Exported on "+new Date,extractAttributes:!0,kvpAttributes:!1,extractStyles:!1,extractTracks:!1,trackAttributes:null,internalns:null,features:null,styles:null,styleBaseUrl:"",fetched:null,maxDepth:0,initialize:function(a){this.regExes=
-            {trimSpace:/^\s*|\s*$/g,removeSpace:/\s*/g,splitSpace:/\s+/,trimComma:/\s*,\s*/g,kmlColor:/(\w{2})(\w{2})(\w{2})(\w{2})/,kmlIconPalette:/root:\/\/icons\/palette-(\d+)(\.\w+)/,straightBracket:/\$\[(.*?)\]/g};this.externalProjection=new OL.Projection("EPSG:4326");OL.Format.XML.prototype.initialize.apply(this,[a])},read:function(a){this.features=[];this.styles={};this.fetched={};return this.parseData(a,{depth:0,styleBaseUrl:this.styleBaseUrl})},parseData:function(a,b){"string"==typeof a&&
-                (a=OL.Format.XML.prototype.read.apply(this,[a]));for(var c=["Link","NetworkLink","Style","StyleMap","Placemark"],d=0,e=c.length;d<e;++d){var f=c[d],g=this.getElementsByTagNameNS(a,"*",f);if(0!=g.length)switch(f.toLowerCase()){case "link":case "networklink":this.parseLinks(g,b);break;case "style":this.extractStyles&&this.parseStyles(g,b);break;case "stylemap":this.extractStyles&&this.parseStyleMaps(g,b);break;case "placemark":this.parseFeatures(g,b)}}return this.features},parseLinks:function(a,
+
+    function RestoreMissingOLKMLSupport(){
+        if(!OL.Format.KML){
+            OL.Format.KML=OL.Class(OL.Format.XML,{namespaces:{kml:"http://www.opengis.net/kml/2.2",gx:"http://www.google.com/kml/ext/2.2"},kmlns:"http://earth.google.com/kml/2.0",placemarksDesc:"No description available",foldersName:"OL export",foldersDesc:"Exported on "+new Date,extractAttributes:!0,kvpAttributes:!1,extractStyles:!1,extractTracks:!1,trackAttributes:null,internalns:null,features:null,styles:null,styleBaseUrl:"",fetched:null,maxDepth:0,initialize:function(a){this.regExes=
+                {trimSpace:/^\s*|\s*$/g,removeSpace:/\s*/g,splitSpace:/\s+/,trimComma:/\s*,\s*/g,kmlColor:/(\w{2})(\w{2})(\w{2})(\w{2})/,kmlIconPalette:/root:\/\/icons\/palette-(\d+)(\.\w+)/,straightBracket:/\$\[(.*?)\]/g};this.externalProjection=new OL.Projection("EPSG:4326");OL.Format.XML.prototype.initialize.apply(this,[a])},read:function(a){this.features=[];this.styles={};this.fetched={};return this.parseData(a,{depth:0,styleBaseUrl:this.styleBaseUrl})},parseData:function(a,b){"string"==typeof a&&
+                    (a=OL.Format.XML.prototype.read.apply(this,[a]));for(var c=["Link","NetworkLink","Style","StyleMap","Placemark"],d=0,e=c.length;d<e;++d){var f=c[d],g=this.getElementsByTagNameNS(a,"*",f);if(0!=g.length)switch(f.toLowerCase()){case "link":case "networklink":this.parseLinks(g,b);break;case "style":this.extractStyles&&this.parseStyles(g,b);break;case "stylemap":this.extractStyles&&this.parseStyleMaps(g,b);break;case "placemark":this.parseFeatures(g,b)}}return this.features},parseLinks:function(a,
 b){if(b.depth>=this.maxDepth)return!1;var c=OL.Util.extend({},b);c.depth++;for(var d=0,e=a.length;d<e;d++){var f=this.parseProperty(a[d],"*","href");f&&!this.fetched[f]&&(this.fetched[f]=!0,(f=this.fetchLink(f))&&this.parseData(f,c))}},fetchLink:function(a){if(a=OL.Request.GET({url:a,async:!1}))return a.responseText},parseStyles:function(a,b){for(var c=0,d=a.length;c<d;c++){var e=this.parseStyle(a[c]);e&&(this.styles[(b.styleBaseUrl||"")+"#"+e.id]=e)}},parseKmlColor:function(a){var b=
-                null;a&&(a=a.match(this.regExes.kmlColor))&&(b={color:"#"+a[4]+a[3]+a[2],opacity:parseInt(a[1],16)/255});return b},parseStyle:function(a){for(var b={},c=["LineStyle","PolyStyle","IconStyle","BalloonStyle","LabelStyle"],d,e,f=0,g=c.length;f<g;++f)if(d=c[f],e=this.getElementsByTagNameNS(a,"*",d)[0])switch(d.toLowerCase()){case "linestyle":d=this.parseProperty(e,"*","color");if(d=this.parseKmlColor(d))b.strokeColor=d.color,b.strokeOpacity=d.opacity;(d=this.parseProperty(e,"*","width"))&&(b.strokeWidth=
+                    null;a&&(a=a.match(this.regExes.kmlColor))&&(b={color:"#"+a[4]+a[3]+a[2],opacity:parseInt(a[1],16)/255});return b},parseStyle:function(a){for(var b={},c=["LineStyle","PolyStyle","IconStyle","BalloonStyle","LabelStyle"],d,e,f=0,g=c.length;f<g;++f)if(d=c[f],e=this.getElementsByTagNameNS(a,"*",d)[0])switch(d.toLowerCase()){case "linestyle":d=this.parseProperty(e,"*","color");if(d=this.parseKmlColor(d))b.strokeColor=d.color,b.strokeOpacity=d.opacity;(d=this.parseProperty(e,"*","width"))&&(b.strokeWidth=
 d);break;case "polystyle":d=this.parseProperty(e,"*","color");if(d=this.parseKmlColor(d))b.fillOpacity=d.opacity,b.fillColor=d.color;"0"==this.parseProperty(e,"*","fill")&&(b.fillColor="none");"0"==this.parseProperty(e,"*","outline")&&(b.strokeWidth="0");break;case "iconstyle":var h=parseFloat(this.parseProperty(e,"*","scale")||1);d=32*h;var i=32*h,j=this.getElementsByTagNameNS(e,"*","Icon")[0];if(j){var k=this.parseProperty(j,"*","href");if(k){var l=this.parseProperty(j,"*","w"),m=this.parseProperty(j,
 "*","h");OL.String.startsWith(k,"http://maps.google.com/mapfiles/kml")&&(!l&&!m)&&(m=l=64,h/=2);l=l||m;m=m||l;l&&(d=parseInt(l)*h);m&&(i=parseInt(m)*h);if(m=k.match(this.regExes.kmlIconPalette))l=m[1],m=m[2],k=this.parseProperty(j,"*","x"),j=this.parseProperty(j,"*","y"),k="http://maps.google.com/mapfiles/kml/pal"+l+"/icon"+(8*(j?7-j/32:7)+(k?k/32:0))+m;b.graphicOpacity=1;b.externalGraphic=k}}if(e=this.getElementsByTagNameNS(e,"*","hotSpot")[0])k=parseFloat(e.getAttribute("x")),j=parseFloat(e.getAttribute("y")),
-                    l=e.getAttribute("xunits"),"pixels"==l?b.graphicXOffset=-k*h:"insetPixels"==l?b.graphicXOffset=-d+k*h:"fraction"==l&&(b.graphicXOffset=-d*k),e=e.getAttribute("yunits"),"pixels"==e?b.graphicYOffset=-i+j*h+1:"insetPixels"==e?b.graphicYOffset=-(j*h)+1:"fraction"==e&&(b.graphicYOffset=-i*(1-j)+1);b.graphicWidth=d;b.graphicHeight=i;break;case "balloonstyle":(e=OL.Util.getXmlNodeValue(e))&&(b.balloonStyle=e.replace(this.regExes.straightBracket,"${$1}"));break;case "labelstyle":if(d=this.parseProperty(e,
+                        l=e.getAttribute("xunits"),"pixels"==l?b.graphicXOffset=-k*h:"insetPixels"==l?b.graphicXOffset=-d+k*h:"fraction"==l&&(b.graphicXOffset=-d*k),e=e.getAttribute("yunits"),"pixels"==e?b.graphicYOffset=-i+j*h+1:"insetPixels"==e?b.graphicYOffset=-(j*h)+1:"fraction"==e&&(b.graphicYOffset=-i*(1-j)+1);b.graphicWidth=d;b.graphicHeight=i;break;case "balloonstyle":(e=OL.Util.getXmlNodeValue(e))&&(b.balloonStyle=e.replace(this.regExes.straightBracket,"${$1}"));break;case "labelstyle":if(d=this.parseProperty(e,
 "*","color"),d=this.parseKmlColor(d))b.fontColor=d.color,b.fontOpacity=d.opacity}!b.strokeColor&&b.fillColor&&(b.strokeColor=b.fillColor);if((a=a.getAttribute("id"))&&b)b.id=a;return b},parseStyleMaps:function(a,b){for(var c=0,d=a.length;c<d;c++)for(var e=a[c],f=this.getElementsByTagNameNS(e,"*","Pair"),e=e.getAttribute("id"),g=0,h=f.length;g<h;g++){var i=f[g],j=this.parseProperty(i,"*","key");(i=this.parseProperty(i,"*","styleUrl"))&&"normal"==j&&(this.styles[(b.styleBaseUrl||"")+"#"+e]=this.styles[(b.styleBaseUrl||
 "")+i])}},parseFeatures:function(a,b){for(var c=[],d=0,e=a.length;d<e;d++){var f=a[d],g=this.parseFeature.apply(this,[f]);if(g){this.extractStyles&&(g.attributes&&g.attributes.styleUrl)&&(g.style=this.getStyle(g.attributes.styleUrl,b));if(this.extractStyles){var h=this.getElementsByTagNameNS(f,"*","Style")[0];if(h&&(h=this.parseStyle(h)))g.style=OL.Util.extend(g.style,h)}if(this.extractTracks){if((f=this.getElementsByTagNameNS(f,this.namespaces.gx,"Track"))&&0<f.length)g={features:[],feature:g},
-                    this.readNode(f[0],g),0<g.features.length&&c.push.apply(c,g.features)}else c.push(g)}else throw"Bad Placemark: "+d;}this.features=this.features.concat(c)},readers:{kml:{when:function(a,b){b.whens.push(OL.Date.parse(this.getChildValue(a)))},_trackPointAttribute:function(a,b){var c=a.nodeName.split(":").pop();b.attributes[c].push(this.getChildValue(a))}},gx:{Track:function(a,b){var c={whens:[],points:[],angles:[]};if(this.trackAttributes){var d;c.attributes={};for(var e=0,f=this.trackAttributes.length;e<
+                        this.readNode(f[0],g),0<g.features.length&&c.push.apply(c,g.features)}else c.push(g)}else throw"Bad Placemark: "+d;}this.features=this.features.concat(c)},readers:{kml:{when:function(a,b){b.whens.push(OL.Date.parse(this.getChildValue(a)))},_trackPointAttribute:function(a,b){var c=a.nodeName.split(":").pop();b.attributes[c].push(this.getChildValue(a))}},gx:{Track:function(a,b){var c={whens:[],points:[],angles:[]};if(this.trackAttributes){var d;c.attributes={};for(var e=0,f=this.trackAttributes.length;e<
 f;++e)d=this.trackAttributes[e],c.attributes[d]=[],d in this.readers.kml||(this.readers.kml[d]=this.readers.kml._trackPointAttribute)}this.readChildNodes(a,c);if(c.whens.length!==c.points.length)throw Error("gx:Track with unequal number of when ("+c.whens.length+") and gx:coord ("+c.points.length+") elements.");var g=0<c.angles.length;if(g&&c.whens.length!==c.angles.length)throw Error("gx:Track with unequal number of when ("+c.whens.length+") and gx:angles ("+c.angles.length+") elements.");for(var h,
 i,e=0,f=c.whens.length;e<f;++e){h=b.feature.clone();h.fid=b.feature.fid||b.feature.id;i=c.points[e];h.geometry=i;"z"in i&&(h.attributes.altitude=i.z);this.internalProjection&&this.externalProjection&&h.geometry.transform(this.externalProjection,this.internalProjection);if(this.trackAttributes){i=0;for(var j=this.trackAttributes.length;i<j;++i)h.attributes[d]=c.attributes[this.trackAttributes[i]][e]}h.attributes.when=c.whens[e];h.attributes.trackId=b.feature.id;g&&(i=c.angles[e],h.attributes.heading=
 parseFloat(i[0]),h.attributes.tilt=parseFloat(i[1]),h.attributes.roll=parseFloat(i[2]));b.features.push(h)}},coord:function(a,b){var c=this.getChildValue(a).replace(this.regExes.trimSpace,"").split(/\s+/),d=new OL.Geometry.Point(c[0],c[1]);2<c.length&&(d.z=parseFloat(c[2]));b.points.push(d)},angles:function(a,b){var c=this.getChildValue(a).replace(this.regExes.trimSpace,"").split(/\s+/);b.angles.push(c)}}},parseFeature:function(a){for(var b=["MultiGeometry","Polygon","LineString","Point"],
 c,d,e,f=0,g=b.length;f<g;++f)if(c=b[f],this.internalns=a.namespaceURI?a.namespaceURI:this.kmlns,d=this.getElementsByTagNameNS(a,this.internalns,c),0<d.length){if(b=this.parseGeometry[c.toLowerCase()])e=b.apply(this,[d[0]]),this.internalProjection&&this.externalProjection&&e.transform(this.externalProjection,this.internalProjection);else throw new TypeError("Unsupported geometry type: "+c);break}var h;this.extractAttributes&&(h=this.parseAttributes(a));c=new OL.Feature.Vector(e,h);a=a.getAttribute("id")||
-                    a.getAttribute("name");null!=a&&(c.fid=a);return c},getStyle:function(a,b){var c=OL.Util.removeTail(a),d=OL.Util.extend({},b);d.depth++;d.styleBaseUrl=c;!this.styles[a]&&!OL.String.startsWith(a,"#")&&d.depth<=this.maxDepth&&!this.fetched[c]&&(c=this.fetchLink(c))&&this.parseData(c,d);return OL.Util.extend({},this.styles[a])},parseGeometry:{point:function(a){var b=this.getElementsByTagNameNS(a,this.internalns,"coordinates"),a=[];if(0<b.length)var c=b[0].firstChild.nodeValue,
-                    c=c.replace(this.regExes.removeSpace,""),a=c.split(",");b=null;if(1<a.length)2==a.length&&(a[2]=null),b=new OL.Geometry.Point(a[0],a[1],a[2]);else throw"Bad coordinate string: "+c;return b},linestring:function(a,b){var c=this.getElementsByTagNameNS(a,this.internalns,"coordinates"),d=null;if(0<c.length){for(var c=this.getChildValue(c[0]),c=c.replace(this.regExes.trimSpace,""),c=c.replace(this.regExes.trimComma,","),d=c.split(this.regExes.splitSpace),e=d.length,f=Array(e),g,h,i=0;i<e;++i)if(g=
+                        a.getAttribute("name");null!=a&&(c.fid=a);return c},getStyle:function(a,b){var c=OL.Util.removeTail(a),d=OL.Util.extend({},b);d.depth++;d.styleBaseUrl=c;!this.styles[a]&&!OL.String.startsWith(a,"#")&&d.depth<=this.maxDepth&&!this.fetched[c]&&(c=this.fetchLink(c))&&this.parseData(c,d);return OL.Util.extend({},this.styles[a])},parseGeometry:{point:function(a){var b=this.getElementsByTagNameNS(a,this.internalns,"coordinates"),a=[];if(0<b.length)var c=b[0].firstChild.nodeValue,
+                        c=c.replace(this.regExes.removeSpace,""),a=c.split(",");b=null;if(1<a.length)2==a.length&&(a[2]=null),b=new OL.Geometry.Point(a[0],a[1],a[2]);else throw"Bad coordinate string: "+c;return b},linestring:function(a,b){var c=this.getElementsByTagNameNS(a,this.internalns,"coordinates"),d=null;if(0<c.length){for(var c=this.getChildValue(c[0]),c=c.replace(this.regExes.trimSpace,""),c=c.replace(this.regExes.trimComma,","),d=c.split(this.regExes.splitSpace),e=d.length,f=Array(e),g,h,i=0;i<e;++i)if(g=
 d[i].split(","),h=g.length,1<h)2==g.length&&(g[2]=null),f[i]=new OL.Geometry.Point(g[0],g[1],g[2]);else throw"Bad LineString point coordinates: "+d[i];if(e)d=b?new OL.Geometry.LinearRing(f):new OL.Geometry.LineString(f);else throw"Bad LineString coordinates: "+c;}return d},polygon:function(a){var a=this.getElementsByTagNameNS(a,this.internalns,"LinearRing"),b=a.length,c=Array(b);if(0<b)for(var d=0,e=a.length;d<e;++d)if(b=this.parseGeometry.linestring.apply(this,[a[d],!0]))c[d]=
-                        b;else throw"Bad LinearRing geometry: "+d;return new OL.Geometry.Polygon(c)},multigeometry:function(a){for(var b,c=[],d=a.childNodes,e=0,f=d.length;e<f;++e)a=d[e],1==a.nodeType&&(b=this.parseGeometry[(a.prefix?a.nodeName.split(":")[1]:a.nodeName).toLowerCase()])&&c.push(b.apply(this,[a]));return new OL.Geometry.Collection(c)}},parseAttributes:function(a){var b={},c=a.getElementsByTagName("ExtendedData");c.length&&(b=this.parseExtendedData(c[0]));for(var d,e,f,a=a.childNodes,c=0,g=
+                            b;else throw"Bad LinearRing geometry: "+d;return new OL.Geometry.Polygon(c)},multigeometry:function(a){for(var b,c=[],d=a.childNodes,e=0,f=d.length;e<f;++e)a=d[e],1==a.nodeType&&(b=this.parseGeometry[(a.prefix?a.nodeName.split(":")[1]:a.nodeName).toLowerCase()])&&c.push(b.apply(this,[a]));return new OL.Geometry.Collection(c)}},parseAttributes:function(a){var b={},c=a.getElementsByTagName("ExtendedData");c.length&&(b=this.parseExtendedData(c[0]));for(var d,e,f,a=a.childNodes,c=0,g=
 a.length;c<g;++c)if(d=a[c],1==d.nodeType&&(e=d.childNodes,1<=e.length&&3>=e.length)){switch(e.length){case 1:f=e[0];break;case 2:f=e[0];e=e[1];f=3==f.nodeType||4==f.nodeType?f:e;break;default:f=e[1]}if(3==f.nodeType||4==f.nodeType)if(d=d.prefix?d.nodeName.split(":")[1]:d.nodeName,f=OL.Util.getXmlNodeValue(f))f=f.replace(this.regExes.trimSpace,""),b[d]=f}return b},parseExtendedData:function(a){var b={},c,d,e,f,g=a.getElementsByTagName("Data");c=0;for(d=g.length;c<d;c++){e=g[c];f=e.getAttribute("name");
 var h={},i=e.getElementsByTagName("value");i.length&&(h.value=this.getChildValue(i[0]));this.kvpAttributes?b[f]=h.value:(e=e.getElementsByTagName("displayName"),e.length&&(h.displayName=this.getChildValue(e[0])),b[f]=h)}a=a.getElementsByTagName("SimpleData");c=0;for(d=a.length;c<d;c++)h={},e=a[c],f=e.getAttribute("name"),h.value=this.getChildValue(e),this.kvpAttributes?b[f]=h.value:(h.displayName=f,b[f]=h);return b},parseProperty:function(a,b,c){var d,a=this.getElementsByTagNameNS(a,b,c);try{d=OL.Util.getXmlNodeValue(a[0])}catch(e){d=
     null}return d},write:function(a){OL.Util.isArray(a)||(a=[a]);for(var b=this.createElementNS(this.kmlns,"kml"),c=this.createFolderXML(),d=0,e=a.length;d<e;++d)c.appendChild(this.createPlacemarkXML(a[d]));b.appendChild(c);return OL.Format.XML.prototype.write.apply(this,[b])},createFolderXML:function(){var a=this.createElementNS(this.kmlns,"Folder");if(this.foldersName){var b=this.createElementNS(this.kmlns,"name"),c=this.createTextNode(this.foldersName);b.appendChild(c);a.appendChild(b)}this.foldersDesc&&
@@ -138,32 +180,30 @@ var h={},i=e.getElementsByTagName("value");i.length&&(h.value=this.getChildValue
         c=this.createElementNS(this.kmlns,c),d=this.buildGeometry.linearring.apply(this,[a[e]]),c.appendChild(d),b.appendChild(c);return b},multipolygon:function(a){return this.buildGeometry.collection.apply(this,[a])},collection:function(a){for(var b=this.createElementNS(this.kmlns,"MultiGeometry"),c,d=0,e=a.components.length;d<e;++d)(c=this.buildGeometryNode.apply(this,[a.components[d]]))&&b.appendChild(c);return b}},buildCoordinatesNode:function(a){var b=this.createElementNS(this.kmlns,"coordinates"),
         c;if(c=a.components){for(var d=c.length,e=Array(d),f=0;f<d;++f)a=c[f],e[f]=this.buildCoordinates(a);c=e.join(" ")}else c=this.buildCoordinates(a);c=this.createTextNode(c);b.appendChild(c);return b},buildCoordinates:function(a){this.internalProjection&&this.externalProjection&&(a=a.clone(),a.transform(this.internalProjection,this.externalProjection));return a.x+","+a.y},buildExtendedData:function(a){var b=this.createElementNS(this.kmlns,"ExtendedData"),c;for(c in a)if(a[c]&&"name"!=c&&"description"!=
 c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("name",c);var e=this.createElementNS(this.kmlns,"value");if("object"==typeof a[c]){if(a[c].value&&e.appendChild(this.createTextNode(a[c].value)),a[c].displayName){var f=this.createElementNS(this.kmlns,"displayName");f.appendChild(this.getXMLDoc().createCDATASection(a[c].displayName));d.appendChild(f)}}else e.appendChild(this.createTextNode(a[c]));d.appendChild(e);b.appendChild(d)}return this.isSimpleContent(b)?null:b},
-                                                                      CLASS_NAME:"OpenLayers.Format.KML"});
-		}
-	}
+                                                  CLASS_NAME:"OpenLayers.Format.KML"});
+        }
+    }
 
     function Geometry(){
-        //var geometry = WazeWrap.Geometry;
-
         //Converts to "normal" GPS coordinates
         this.ConvertTo4326 = function (long, lat){
-            var projI=new OL.Projection("EPSG:900913");
-            var projE=new OL.Projection("EPSG:4326");
+            let projI=new OL.Projection("EPSG:900913");
+            let projE=new OL.Projection("EPSG:4326");
             return (new OL.LonLat(long, lat)).transform(projI,projE);
         };
 
         this.ConvertTo900913 = function (long, lat){
-            var projI=new OL.Projection("EPSG:900913");
-            var projE=new OL.Projection("EPSG:4326");
+            let projI=new OL.Projection("EPSG:900913");
+            let projE=new OL.Projection("EPSG:4326");
             return (new OL.LonLat(long, lat)).transform(projE,projI);
         };
 
         //Converts the Longitudinal offset to an offset in 4326 gps coordinates
         this.CalculateLongOffsetGPS = function(longMetersOffset, long, lat)
         {
-            var R= 6378137; //Earth's radius
-            var dLon = longMetersOffset / (R * Math.cos(Math.PI * lat / 180)); //offset in radians
-            var lon0 = dLon * (180 / Math.PI); //offset degrees
+            let R = 6378137; //Earth's radius
+            let dLon = longMetersOffset / (R * Math.cos(Math.PI * lat / 180)); //offset in radians
+            let lon0 = dLon * (180 / Math.PI); //offset degrees
 
             return lon0;
         };
@@ -171,9 +211,9 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
         //Converts the Latitudinal offset to an offset in 4326 gps coordinates
         this.CalculateLatOffsetGPS = function(latMetersOffset, lat)
         {
-            var R= 6378137; //Earth's radius
-            var dLat = latMetersOffset/R;
-            var lat0 = dLat * (180  /Math.PI); //offset degrees
+            let R = 6378137; //Earth's radius
+            let dLat = latMetersOffset/R;
+            let lat0 = dLat * (180  /Math.PI); //offset degrees
 
             return lat0;
         };
@@ -206,15 +246,15 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             if(pointArray.length < 2)
                 return 0;
 
-            var line = new OL.Geometry.LineString(pointArray);
-            var length = line.getGeodesicLength(W.map.getProjectionObject());
+            let line = new OL.Geometry.LineString(pointArray);
+            let length = line.getGeodesicLength(W.map.getProjectionObject());
             return length; //multiply by 3.28084 to convert to feet
         };
 
         this.findClosestSegment = function(mygeometry, ignorePLR, ignoreUnnamedPR){
-            var onscreenSegments = WazeWrap.Model.getOnscreenSegments();
-            var minDistance = Infinity;
-            var closestSegment;
+            let onscreenSegments = WazeWrap.Model.getOnscreenSegments();
+            let minDistance = Infinity;
+            let closestSegment;
 
             for (var s in onscreenSegments) {
                 if (!onscreenSegments.hasOwnProperty(s))
@@ -295,12 +335,11 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
         };
 
         this.getAllRoundaboutJunctionNodesFromObj = function(segObj){
-            var RASegs = this.getAllRoundaboutSegmentsFromObj(segObj);
-            var RAJunctionNodes = [];
-            for(i=0; i< RASegs.length; i++){
+            let RASegs = this.getAllRoundaboutSegmentsFromObj(segObj);
+            let RAJunctionNodes = [];
+            for(i=0; i< RASegs.length; i++)
                 RAJunctionNodes.push(W.model.nodes.objects[W.model.segments.getObjectById(RASegs[i]).attributes.toNodeID]);
 
-            }
             return RAJunctionNodes;
         };
 
@@ -319,10 +358,10 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
         };
 
         this.getOnscreenSegments = function(){
-            var segments = W.model.segments.objects;
-            var mapExtent = W.map.getExtent();
-            var onScreenSegments = [];
-            var seg;
+            let segments = W.model.segments.objects;
+            let mapExtent = W.map.getExtent();
+            let onScreenSegments = [];
+            let seg;
 
             for (var s in segments) {
                 if (!segments.hasOwnProperty(s))
@@ -822,7 +861,6 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
         });
     }
 
-
     function Util(){
         /**
          * Function to defer function execution until an element is present on
@@ -835,11 +873,9 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
          * @param {Object} [context] The context in which to call the callback.
          */
         this.waitForElement = function (selector, callback, context) {
-            var jqObj;
-
-            if (!selector || typeof callback !== 'function') {
+            let jqObj;
+            if (!selector || typeof callback !== 'function')
                 return;
-            }
 
             jqObj = typeof selector === 'string' ?
                 $(selector) : selector instanceof $ ? selector : null;
@@ -848,9 +884,8 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                 window.requestAnimationFrame(function () {
                     WazeWrap.Util.waitForElement(selector, callback, context);
                 });
-            } else {
+            } else
                 callback.call(context || callback);
-            }
         };
 
         /**
@@ -890,214 +925,214 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                 return modelReady;
             };
         } ();
-		
-		this.OrthogonalizeGeometry = function (geometry, threshold = 12) {
-			var nomthreshold = threshold, // degrees within right or straight to alter
-				lowerThreshold = Math.cos((90 - nomthreshold) * Math.PI / 180),
-				upperThreshold = Math.cos(nomthreshold * Math.PI / 180);
 
-			function Orthogonalize() {
-				var nodes = geometry,
-					points = nodes.slice(0, -1).map(function (n) {
-						var p = n.clone().transform(new OL.Projection("EPSG:900913"), new OL.Projection("EPSG:4326"));
-						p.y = lat2latp(p.y);
-						return p;
-					}),
-					corner = {i: 0, dotp: 1},
-					epsilon = 1e-4,
-					i, j, score, motions;
+        this.OrthogonalizeGeometry = function (geometry, threshold = 12) {
+            let nomthreshold = threshold, // degrees within right or straight to alter
+                lowerThreshold = Math.cos((90 - nomthreshold) * Math.PI / 180),
+                upperThreshold = Math.cos(nomthreshold * Math.PI / 180);
 
-				// Triangle
-				if (nodes.length === 4) {
-					for (i = 0; i < 1000; i++) {
-						motions = points.map(calcMotion);
+            function Orthogonalize() {
+                var nodes = geometry,
+                    points = nodes.slice(0, -1).map(function (n) {
+                        let p = n.clone().transform(new OL.Projection("EPSG:900913"), new OL.Projection("EPSG:4326"));
+                        p.y = lat2latp(p.y);
+                        return p;
+                    }),
+                    corner = {i: 0, dotp: 1},
+                    epsilon = 1e-4,
+                    i, j, score, motions;
 
-						var tmp = addPoints(points[corner.i], motions[corner.i]);
-						points[corner.i].x = tmp.x;
-						points[corner.i].y = tmp.y;
+                // Triangle
+                if (nodes.length === 4) {
+                    for (i = 0; i < 1000; i++) {
+                        motions = points.map(calcMotion);
 
-						score = corner.dotp;
-						if (score < epsilon)
-							break;
-					}
+                        var tmp = addPoints(points[corner.i], motions[corner.i]);
+                        points[corner.i].x = tmp.x;
+                        points[corner.i].y = tmp.y;
 
-					var n = points[corner.i];
-					n.y = latp2lat(n.y);
-					var pp = n.transform(new OL.Projection("EPSG:4326"), new OL.Projection("EPSG:900913"));
+                        score = corner.dotp;
+                        if (score < epsilon)
+                            break;
+                    }
 
-					var id = nodes[corner.i].id;
-					for (i = 0; i < nodes.length; i++) {
-						if (nodes[i].id != id)
-							continue;
+                    var n = points[corner.i];
+                    n.y = latp2lat(n.y);
+                    let pp = n.transform(new OL.Projection("EPSG:4326"), new OL.Projection("EPSG:900913"));
 
-						nodes[i].x = pp.x;
-						nodes[i].y = pp.y;
-					}
+                    let id = nodes[corner.i].id;
+                    for (i = 0; i < nodes.length; i++) {
+                        if (nodes[i].id != id)
+                            continue;
 
-					return nodes;
-				} else {
-					var best,
-						originalPoints = nodes.slice(0, -1).map(function (n) {
-							var p = n.clone().transform(new OL.Projection("EPSG:900913"), new OL.Projection("EPSG:4326"));
-							p.y = lat2latp(p.y);
-							return p;
-						});
-						score = Infinity;
+                        nodes[i].x = pp.x;
+                        nodes[i].y = pp.y;
+                    }
 
-					for (i = 0; i < 1000; i++) {
-						motions = points.map(calcMotion);
-						for (j = 0; j < motions.length; j++) {
-							var tmp = addPoints(points[j], motions[j]);
-							points[j].x = tmp.x;
-							points[j].y = tmp.y;
-						}
-						var newScore = squareness(points);
-						if (newScore < score) {
-							best = [].concat(points);
-							score = newScore;
-						}
-						if (score < epsilon)
-							break;
-					}
+                    return nodes;
+                } else {
+                    var best,
+                        originalPoints = nodes.slice(0, -1).map(function (n) {
+                            let p = n.clone().transform(new OL.Projection("EPSG:900913"), new OL.Projection("EPSG:4326"));
+                            p.y = lat2latp(p.y);
+                            return p;
+                        });
+                    score = Infinity;
 
-					points = best;
+                    for (i = 0; i < 1000; i++) {
+                        motions = points.map(calcMotion);
+                        for (j = 0; j < motions.length; j++) {
+                            let tmp = addPoints(points[j], motions[j]);
+                            points[j].x = tmp.x;
+                            points[j].y = tmp.y;
+                        }
+                        var newScore = squareness(points);
+                        if (newScore < score) {
+                            best = [].concat(points);
+                            score = newScore;
+                        }
+                        if (score < epsilon)
+                            break;
+                    }
 
-					for (i = 0; i < points.length; i++) {
-						// only move the points that actually moved
-						if (originalPoints[i].x !== points[i].x || originalPoints[i].y !== points[i].y) {
-							var n = points[i];
-							n.y = latp2lat(n.y);
-							var pp = n.transform(new OL.Projection("EPSG:4326"), new OL.Projection("EPSG:900913"));
+                    points = best;
 
-							var id = nodes[i].id;
-							for (j = 0; j < nodes.length; j++) {
-								if (nodes[j].id != id)
-									continue;
+                    for (i = 0; i < points.length; i++) {
+                        // only move the points that actually moved
+                        if (originalPoints[i].x !== points[i].x || originalPoints[i].y !== points[i].y) {
+                            let n = points[i];
+                            n.y = latp2lat(n.y);
+                            let pp = n.transform(new OL.Projection("EPSG:4326"), new OL.Projection("EPSG:900913"));
 
-								nodes[j].x = pp.x;
-								nodes[j].y = pp.y;
-							}
-						}
-					}
+                            let id = nodes[i].id;
+                            for (j = 0; j < nodes.length; j++) {
+                                if (nodes[j].id != id)
+                                    continue;
 
-					// remove empty nodes on straight sections
-					for (i = 0; i < points.length; i++) {
-						var dotp = normalizedDotProduct(i, points);
-						if (dotp < -1 + epsilon) {
-							id = nodes[i].id;
-							for (j = 0; j < nodes.length; j++) {
-								if (nodes[j].id != id)
-									continue;
+                                nodes[j].x = pp.x;
+                                nodes[j].y = pp.y;
+                            }
+                        }
+                    }
 
-								nodes[j] = false;
-							}
-						}
-					}
+                    // remove empty nodes on straight sections
+                    for (i = 0; i < points.length; i++) {
+                        let dotp = normalizedDotProduct(i, points);
+                        if (dotp < -1 + epsilon) {
+                            id = nodes[i].id;
+                            for (j = 0; j < nodes.length; j++) {
+                                if (nodes[j].id != id)
+                                    continue;
 
-					return nodes.filter(item => item !== false);
-				}
+                                nodes[j] = false;
+                            }
+                        }
+                    }
 
-				function calcMotion(b, i, array) {
-					var a = array[(i - 1 + array.length) % array.length],
-						c = array[(i + 1) % array.length],
-						p = subtractPoints(a, b),
-						q = subtractPoints(c, b),
-						scale, dotp;
+                    return nodes.filter(item => item !== false);
+                }
 
-					scale = 2 * Math.min(euclideanDistance(p, {x: 0, y: 0}), euclideanDistance(q, {x: 0, y: 0}));
-					p = normalizePoint(p, 1.0);
-					q = normalizePoint(q, 1.0);
+                function calcMotion(b, i, array) {
+                    let a = array[(i - 1 + array.length) % array.length],
+                        c = array[(i + 1) % array.length],
+                        p = subtractPoints(a, b),
+                        q = subtractPoints(c, b),
+                        scale, dotp;
 
-					dotp = filterDotProduct(p.x * q.x + p.y * q.y);
+                    scale = 2 * Math.min(euclideanDistance(p, {x: 0, y: 0}), euclideanDistance(q, {x: 0, y: 0}));
+                    p = normalizePoint(p, 1.0);
+                    q = normalizePoint(q, 1.0);
 
-					// nasty hack to deal with almost-straight segments (angle is closer to 180 than to 90/270).
-					if (array.length > 3) {
-						if (dotp < -0.707106781186547)
-							dotp += 1.0;
-					} else if (dotp && Math.abs(dotp) < corner.dotp) {
-						corner.i = i;
-						corner.dotp = Math.abs(dotp);
-					}
+                    dotp = filterDotProduct(p.x * q.x + p.y * q.y);
 
-					return normalizePoint(addPoints(p, q), 0.1 * dotp * scale);
-				}
-			};
-			
-			function lat2latp(lat) {
-				return 180 / Math.PI * Math.log(Math.tan(Math.PI / 4 + lat * (Math.PI / 180) / 2));
-			}
+                    // nasty hack to deal with almost-straight segments (angle is closer to 180 than to 90/270).
+                    if (array.length > 3) {
+                        if (dotp < -0.707106781186547)
+                            dotp += 1.0;
+                    } else if (dotp && Math.abs(dotp) < corner.dotp) {
+                        corner.i = i;
+                        corner.dotp = Math.abs(dotp);
+                    }
 
-			function latp2lat(a) {
-				return 180 / Math.PI * (2 * Math.atan(Math.exp(a * Math.PI / 180)) - Math.PI / 2);
-			}
+                    return normalizePoint(addPoints(p, q), 0.1 * dotp * scale);
+                }
+            };
 
-			function squareness(points) {
-				return points.reduce(function (sum, val, i, array) {
-					var dotp = normalizedDotProduct(i, array);
+            function lat2latp(lat) {
+                return 180 / Math.PI * Math.log(Math.tan(Math.PI / 4 + lat * (Math.PI / 180) / 2));
+            }
 
-					dotp = filterDotProduct(dotp);
-					return sum + 2.0 * Math.min(Math.abs(dotp - 1.0), Math.min(Math.abs(dotp), Math.abs(dotp + 1)));
-				}, 0);
-			}
+            function latp2lat(a) {
+                return 180 / Math.PI * (2 * Math.atan(Math.exp(a * Math.PI / 180)) - Math.PI / 2);
+            }
 
-			function normalizedDotProduct(i, points) {
-				var a = points[(i - 1 + points.length) % points.length],
-					b = points[i],
-					c = points[(i + 1) % points.length],
-					p = subtractPoints(a, b),
-					q = subtractPoints(c, b);
+            function squareness(points) {
+                return points.reduce(function (sum, val, i, array) {
+                    let dotp = normalizedDotProduct(i, array);
 
-				p = normalizePoint(p, 1.0);
-				q = normalizePoint(q, 1.0);
+                    dotp = filterDotProduct(dotp);
+                    return sum + 2.0 * Math.min(Math.abs(dotp - 1.0), Math.min(Math.abs(dotp), Math.abs(dotp + 1)));
+                }, 0);
+            }
 
-				return p.x * q.x + p.y * q.y;
-			}
+            function normalizedDotProduct(i, points) {
+                let a = points[(i - 1 + points.length) % points.length],
+                    b = points[i],
+                    c = points[(i + 1) % points.length],
+                    p = subtractPoints(a, b),
+                    q = subtractPoints(c, b);
 
-			function subtractPoints(a, b) {
-				return {x: a.x - b.x, y: a.y - b.y};
-			}
+                p = normalizePoint(p, 1.0);
+                q = normalizePoint(q, 1.0);
 
-			function addPoints(a, b) {
-				return {x: a.x + b.x, y: a.y + b.y};
-			}
+                return p.x * q.x + p.y * q.y;
+            }
 
-			function euclideanDistance(a, b) {
-				var x = a.x - b.x, y = a.y - b.y;
-				return Math.sqrt((x * x) + (y * y));
-			}
+            function subtractPoints(a, b) {
+                return {x: a.x - b.x, y: a.y - b.y};
+            }
 
-			function normalizePoint(point, scale) {
-				var vector = {x: 0, y: 0};
-				var length = Math.sqrt(point.x * point.x + point.y * point.y);
-				if (length !== 0) {
-					vector.x = point.x / length;
-					vector.y = point.y / length;
-				}
+            function addPoints(a, b) {
+                return {x: a.x + b.x, y: a.y + b.y};
+            }
 
-				vector.x *= scale;
-				vector.y *= scale;
+            function euclideanDistance(a, b) {
+                let x = a.x - b.x, y = a.y - b.y;
+                return Math.sqrt((x * x) + (y * y));
+            }
 
-				return vector;
-			}
+            function normalizePoint(point, scale) {
+                let vector = {x: 0, y: 0};
+                let length = Math.sqrt(point.x * point.x + point.y * point.y);
+                if (length !== 0) {
+                    vector.x = point.x / length;
+                    vector.y = point.y / length;
+                }
 
-			function filterDotProduct(dotp) {
-				if (lowerThreshold > Math.abs(dotp) || Math.abs(dotp) > upperThreshold)
-					return dotp;
+                vector.x *= scale;
+                vector.y *= scale;
 
-				return 0;
-			}
+                return vector;
+            }
 
-			this.isDisabled = function (nodes) {
-				var points = nodes.slice(0, -1).map(function (n) {
-					var p = n.toLonLat().transform(new OL.Projection("EPSG:900913"), new OL.Projection("EPSG:4326"));
-					return {x: p.lat, y: p.lon};
-				});
+            function filterDotProduct(dotp) {
+                if (lowerThreshold > Math.abs(dotp) || Math.abs(dotp) > upperThreshold)
+                    return dotp;
 
-				return squareness(points);
-			};
-			
-			return Orthogonalize();
-		};
+                return 0;
+            }
+
+            this.isDisabled = function (nodes) {
+                let points = nodes.slice(0, -1).map(function (n) {
+                    let p = n.toLonLat().transform(new OL.Projection("EPSG:900913"), new OL.Projection("EPSG:4326"));
+                    return {x: p.lat, y: p.lon};
+                });
+
+                return squareness(points);
+            };
+
+            return Orthogonalize();
+        };
     }
 
     function Interface() {
@@ -1106,249 +1141,248 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
          * @private
          */
         var getNextID = function () {
-            var id = 1;
+            let id = 1;
             return function () {
                 return id++;
             };
         } ();
 
         this.Shortcut = class Shortcut{
-		constructor(name, desc, group, title, shortcut, callback, scope){
-			if ('string' === typeof name && name.length > 0 && 'string' === typeof shortcut && 'function' === typeof callback) {
-				this.name = name;
-				this.desc = desc;
-				this.group = group || this.defaults.group;
-				this.title = title;
-				this.callback = callback;
-				this.shortcut = {};
-				this.shortcut[shortcut] = name;
-				if ('object' !== typeof scope) 
-					this.scope = null;
-				else 
-					this.scope = scope;
-				this.groupExists = false;
-				this.actionExists = false;
-				this.eventExists = false;
-				this.defaults = {group: 'default'};
+            constructor(name, desc, group, title, shortcut, callback, scope){
+                if ('string' === typeof name && name.length > 0 && 'string' === typeof shortcut && 'function' === typeof callback) {
+                    this.name = name;
+                    this.desc = desc;
+                    this.group = group || this.defaults.group;
+                    this.title = title;
+                    this.callback = callback;
+                    this.shortcut = {};
+                    this.shortcut[shortcut] = name;
+                    if ('object' !== typeof scope)
+                        this.scope = null;
+                    else
+                        this.scope = scope;
+                    this.groupExists = false;
+                    this.actionExists = false;
+                    this.eventExists = false;
+                    this.defaults = {group: 'default'};
 
-				return this;
-			}
-		}
+                    return this;
+                }
+            }
 
-		/**
+            /**
 		* Determines if the shortcut's action already exists.
 		* @private
 		*/
-		doesGroupExist(){
-			this.groupExists = 'undefined' !== typeof W.accelerators.Groups[this.group] &&
-			undefined !== typeof W.accelerators.Groups[this.group].members;
-			return this.groupExists;
-		}
+            doesGroupExist(){
+                this.groupExists = 'undefined' !== typeof W.accelerators.Groups[this.group] &&
+                    undefined !== typeof W.accelerators.Groups[this.group].members;
+                return this.groupExists;
+            }
 
-		/**
+            /**
 		* Determines if the shortcut's action already exists.
 		* @private
 		*/
-		doesActionExist() {
-			this.actionExists = 'undefined' !== typeof W.accelerators.Actions[this.name];
-			return this.actionExists;
-		}
+            doesActionExist() {
+                this.actionExists = 'undefined' !== typeof W.accelerators.Actions[this.name];
+                return this.actionExists;
+            }
 
-		/**
+            /**
 		* Determines if the shortcut's event already exists.
 		* @private
 		*/
-		doesEventExist() {
-			this.eventExists = 'undefined' !== typeof W.accelerators.events.listeners[this.name] &&
-			W.accelerators.events.listeners[this.name].length > 0 &&
-			this.callback === W.accelerators.events.listeners[this.name][0].func &&
-			this.scope === W.accelerators.events.listeners[this.name][0].obj;
-			return this.eventExists;
-		}
+            doesEventExist() {
+                this.eventExists = 'undefined' !== typeof W.accelerators.events.listeners[this.name] &&
+                    W.accelerators.events.listeners[this.name].length > 0 &&
+                    this.callback === W.accelerators.events.listeners[this.name][0].func &&
+                    this.scope === W.accelerators.events.listeners[this.name][0].obj;
+                return this.eventExists;
+            }
 
-		/**
+            /**
 		* Creates the shortcut's group.
 		* @private
 		*/
-		createGroup() {
-			W.accelerators.Groups[this.group] = [];
-			W.accelerators.Groups[this.group].members = [];
+            createGroup() {
+                W.accelerators.Groups[this.group] = [];
+                W.accelerators.Groups[this.group].members = [];
 
-			if(this.title && !I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group]){
-				I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group] = [];
-				I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].description = this.title;
-				I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members = [];
-			}
-		}
+                if(this.title && !I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group]){
+                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group] = [];
+                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].description = this.title;
+                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members = [];
+                }
+            }
 
-		/**
+            /**
 		* Registers the shortcut's action.
 		* @private
 		*/
-		addAction(){
-			if(this.title)
-				I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members[this.name] = this.desc;
-			W.accelerators.addAction(this.name, { group: this.group });
-		}
+            addAction(){
+                if(this.title)
+                    I18n.translations[I18n.currentLocale()].keyboard_shortcuts.groups[this.group].members[this.name] = this.desc;
+                W.accelerators.addAction(this.name, { group: this.group });
+            }
 
-		/**
+            /**
 		* Registers the shortcut's event.
 		* @private
 		*/
-		addEvent(){
-			W.accelerators.events.register(this.name, this.scope, this.callback);
-		}
+            addEvent(){
+                W.accelerators.events.register(this.name, this.scope, this.callback);
+            }
 
-		/**
+            /**
 		* Registers the shortcut's keyboard shortcut.
 		* @private
 		*/
-		registerShortcut() {
-			W.accelerators._registerShortcuts(this.shortcut);
-		}
+            registerShortcut() {
+                W.accelerators._registerShortcuts(this.shortcut);
+            }
 
-		/**
+            /**
 		* Adds the keyboard shortcut to the map.
 		* @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
 		*/
-		add(){
-			/* If the group is not already defined, initialize the group. */
-			if (!this.doesGroupExist()) {
-				this.createGroup();
-			}
+            add(){
+                /* If the group is not already defined, initialize the group. */
+                if (!this.doesGroupExist()) {
+                    this.createGroup();
+                }
 
-			/* Clear existing actions with same name */
-			if (this.doesActionExist()) {
-				W.accelerators.Actions[this.name] = null;
-			}
-			this.addAction();
+                /* Clear existing actions with same name */
+                if (this.doesActionExist()) {
+                    W.accelerators.Actions[this.name] = null;
+                }
+                this.addAction();
 
-			/* Register event only if it's not already registered */
-			if (!this.doesEventExist()) {
-				this.addEvent();
-			}
+                /* Register event only if it's not already registered */
+                if (!this.doesEventExist()) {
+                    this.addEvent();
+                }
 
-			/* Finally, register the shortcut. */
-			this.registerShortcut();
-			return this;
-		}
+                /* Finally, register the shortcut. */
+                this.registerShortcut();
+                return this;
+            }
 
-		/**
+            /**
 		* Removes the keyboard shortcut from the map.
 		* @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
 		*/
-		remove() {
-			if (this.doesEventExist()) {
-				W.accelerators.events.unregister(this.name, this.scope, this.callback);
-			}
-			if (this.doesActionExist()) {
-				delete W.accelerators.Actions[this.name];
-			}
-			//remove shortcut?
-			return this;
-		}
+            remove() {
+                if (this.doesEventExist()) {
+                    W.accelerators.events.unregister(this.name, this.scope, this.callback);
+                }
+                if (this.doesActionExist()) {
+                    delete W.accelerators.Actions[this.name];
+                }
+                //remove shortcut?
+                return this;
+            }
 
-		/**
+            /**
 		* Changes the keyboard shortcut and applies changes to the map.
 		* @return {WazeWrap.Interface.Shortcut} The keyboard shortcut.
 		*/
-		change (shortcut) {
-			if (shortcut) {
-				this.shortcut = {};
-				this.shortcut[shortcut] = this.name;
-				this.registerShortcut();
-			}
-			return this;
-		}
-	}
+            change (shortcut) {
+                if (shortcut) {
+                    this.shortcut = {};
+                    this.shortcut[shortcut] = this.name;
+                    this.registerShortcut();
+                }
+                return this;
+            }
+        }
 
-		this.Tab = class Tab{
-			constructor(name, content, callback, context){
-				this.TAB_SELECTOR = '#user-tabs ul.nav-tabs';
-				this.CONTENT_SELECTOR = '#user-info div.tab-content';
-				this.callback = null;
-				this.$content = null;
-				this.context = null;
-				this.$tab = null;
-				
-				 let idName, i = 0;
-				
-				if (name && 'string' === typeof name &&
-					content && 'string' === typeof content) {
-					if (callback && 'function' === typeof callback) {
-						this.callback = callback;
-						this.context = context || callback;
-					}
-					/* Sanitize name for html id attribute */
-					idName = name.toLowerCase().replace(/[^a-z-_]/g, '');
-					/* Make sure id will be unique on page */
-					while (
-						$('#sidepanel-' + (i ? idName + i : idName)).length > 0) {
-						i++;
-					}
-					if (i) {
-						idName = idName + i;
-					}
-					/* Create tab and content */
-					this.$tab = $('<li/>')
-						.append($('<a/>')
-							.attr({
-								'href': '#sidepanel-' + idName,
-								'data-toggle': 'tab',
-							})
-							.text(name));
-					this.$content = $('<div/>')
-						.addClass('tab-pane')
-						.attr('id', 'sidepanel-' + idName)
-						.html(content);
+        this.Tab = class Tab{
+            constructor(name, content, callback, context){
+                this.TAB_SELECTOR = '#user-tabs ul.nav-tabs';
+                this.CONTENT_SELECTOR = '#user-info div.tab-content';
+                this.callback = null;
+                this.$content = null;
+                this.context = null;
+                this.$tab = null;
 
-					this.appendTab();
-					let that = this;
-					if (W.prefs) {
-						W.prefs.on('change:isImperial', function(){that.appendTab();});
-					}
-					W.app.modeController.model.bind('change:mode', function(){that.appendTab();});
-						}
-					}
-			
-			append(content){
-				this.$content.append(content);
-			}
-			
-			appendTab(){
-				WazeWrap.Util.waitForElement(
-					this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
-					function () {
-						$(this.TAB_SELECTOR).append(this.$tab);
-						$(this.CONTENT_SELECTOR).first().append(this.$content);
-						if (this.callback) {
-							this.callback.call(this.context);
-						}
-					}, this);
-			}
-			
-			clearContent(){
-				this.$content.empty();
-			}
-			
-			destroy(){
-				this.$tab.remove();
-				this.$content.remove();
-			}
-		}
+                let idName, i = 0;
+
+                if (name && 'string' === typeof name &&
+                    content && 'string' === typeof content) {
+                    if (callback && 'function' === typeof callback) {
+                        this.callback = callback;
+                        this.context = context || callback;
+                    }
+                    /* Sanitize name for html id attribute */
+                    idName = name.toLowerCase().replace(/[^a-z-_]/g, '');
+                    /* Make sure id will be unique on page */
+                    while (
+                        $('#sidepanel-' + (i ? idName + i : idName)).length > 0) {
+                        i++;
+                    }
+                    if (i)
+                        idName = idName + i;
+                    /* Create tab and content */
+                    this.$tab = $('<li/>')
+                        .append($('<a/>')
+                                .attr({
+                        'href': '#sidepanel-' + idName,
+                        'data-toggle': 'tab',
+                    })
+                                .text(name));
+                    this.$content = $('<div/>')
+                        .addClass('tab-pane')
+                        .attr('id', 'sidepanel-' + idName)
+                        .html(content);
+
+                    this.appendTab();
+                    let that = this;
+                    if (W.prefs) {
+                        W.prefs.on('change:isImperial', function(){that.appendTab();});
+                    }
+                    W.app.modeController.model.bind('change:mode', function(){that.appendTab();});
+                }
+            }
+
+            append(content){
+                this.$content.append(content);
+            }
+
+            appendTab(){
+                WazeWrap.Util.waitForElement(
+                    this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
+                    function () {
+                        $(this.TAB_SELECTOR).append(this.$tab);
+                        $(this.CONTENT_SELECTOR).first().append(this.$content);
+                        if (this.callback) {
+                            this.callback.call(this.context);
+                        }
+                    }, this);
+            }
+
+            clearContent(){
+                this.$content.empty();
+            }
+
+            destroy(){
+                this.$tab.remove();
+                this.$content.remove();
+            }
+        }
 
         this.AddLayerCheckbox = function(group, checkboxText, checked, callback){
             group = group.toLowerCase();
-            var normalizedText = checkboxText.toLowerCase().replace(/\s/g, '_');
-            var checkboxID = "layer-switcher-item_" + normalizedText;
-            var groupPrefix = 'layer-switcher-group_';
-            var groupClass = groupPrefix + group.toLowerCase();
+            let normalizedText = checkboxText.toLowerCase().replace(/\s/g, '_');
+            let checkboxID = "layer-switcher-item_" + normalizedText;
+            let groupPrefix = 'layer-switcher-group_';
+            let groupClass = groupPrefix + group.toLowerCase();
             sessionStorage[normalizedText] = checked;
 
-            var CreateParentGroup = function(groupChecked){
-                var groupList = $('.layer-switcher').find('.list-unstyled.togglers');
-                var checkboxText = group.charAt(0).toUpperCase() + group.substr(1);
-                var newLI = $('<li class="group">');
+            let CreateParentGroup = function(groupChecked){
+                let groupList = $('.layer-switcher').find('.list-unstyled.togglers');
+                let checkboxText = group.charAt(0).toUpperCase() + group.substr(1);
+                let newLI = $('<li class="group">');
                 newLI.html([
                     '<div class="controls-container toggler">',
                     '<input class="' + groupClass + '" id="' + groupClass + '" type="checkbox" ' + (groupChecked ? 'checked' : '') +'>',
@@ -1364,7 +1398,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 
             if(group !== "issues" && group !== "places" && group !== "road" && group !== "display") //"non-standard" group, check its existence
                 if($('.'+groupClass).length === 0){ //Group doesn't exist yet, create it
-                    var isParentChecked = (typeof sessionStorage[groupClass] == "undefined" ? true : sessionStorage[groupClass]=='true');
+                    let isParentChecked = (typeof sessionStorage[groupClass] == "undefined" ? true : sessionStorage[groupClass]=='true');
                     CreateParentGroup(isParentChecked);  //create the group
                     sessionStorage[groupClass] = isParentChecked;
 
@@ -1374,7 +1408,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                 }
 
             var buildLayerItem = function(isChecked){
-                var groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
+                let groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
                 let $li = $('<li>');
                 $li.html([
                     '<div class="controls-container toggler">',
@@ -1400,6 +1434,55 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             });
 
             buildLayerItem(checked);
+        };
+
+        this.ShowScriptUpdate = function(scriptName, version, updateHTML, greasyforkLink = "", forumLink = ""){
+            let settings;
+            function loadSettings() {
+                var loadedSettings = $.parseJSON(localStorage.getItem("WWScriptUpdate"));
+                var defaultSettings = {
+                    ScriptUpdateHistory: {},
+                };
+                settings = loadedSettings ? loadedSettings : defaultSettings;
+                for (var prop in defaultSettings) {
+                    if (!settings.hasOwnProperty(prop))
+                        settings[prop] = defaultSettings[prop];
+                }
+            }
+
+            function saveSettings() {
+                if (localStorage) {
+                    var localsettings = {
+                        ScriptUpdateHistory: settings.ScriptUpdateHistory,
+                    };
+
+                    localStorage.setItem("WWScriptUpdate", JSON.stringify(localsettings));
+                }
+            }
+
+            loadSettings();
+
+            if(typeof settings.ScriptUpdateHistory[scriptName] === "undefined" || settings.ScriptUpdateHistory[scriptName] != version){
+                let currCount = $('.WWSU-script-item').length;
+                let divID = (scriptName + ("" + version)).toLowerCase().replace(/[^a-z-_0-9]/g, '');
+                $('#WWSU-script-list').append(`<a href="#${divID}" class="WWSU-script-item ${currCount === 0 ? 'WWSU-active' : ''}">${scriptName}</a>`); //add the script's tab
+                $("#WWSU-updateCount").html(parseInt($("#WWSU-updateCount").html()) + 1); //increment the total script updates value
+                let install="", forum="";
+                if(greasyforkLink != "")
+                    install = `<a href="${greasyforkLink}" target="_blank">Greasyfork</a>`;
+                if(forumLink != "")
+                    forum = `<a href="${forumLink}" target="_blank">Forum</a>`;
+                let footer = "";
+                if(forumLink != "" || greasyforkLink != ""){
+                    footer = `<span class="WWSUFooter" style="margin-bottom:2px; display:block; position:absolute; bottom:0;">${install}${(greasyforkLink != "" && forumLink != "") ? " | " : ""}${forum}</span>`;
+                }
+                $('#WWSU-script-update-info').append(`<div id="${divID}"><h3>${version}</h3><br>${updateHTML}${footer}</div>`);
+                $('#WWSU-Container').show();
+                if(currCount === 0)
+                    $('#WWSU-script-list').find("a")[0].click();
+                settings.ScriptUpdateHistory[scriptName] = version;
+                saveSettings();
+            }
         };
     }
 
