@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.01.15.01
+// @version      2019.02.02.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-var WazeWrap = {Ready: false, Version: "2019.02.01.01"};
+var WazeWrap = {Ready: false, Version: "2019.02.02.01"};
 
 (function() {
     'use strict';
@@ -128,7 +128,7 @@ var WazeWrap = {Ready: false, Version: "2019.02.01.01"};
             '#WWSU-Close { color:#000000; background-color:#ffffff; border:1px solid #ececec; border-radius:10px; height:25px; width:25px; position: absolute; right:14px; top:10px; cursor:pointer; padding: 5px 0px 0px 5px;}',
             '#WWSU-Container .modal-heading,.WWSU-updates-wrapper { font-family: "Helvetica Neue", Helvetica, "Open Sans", sans-serif; } ',
             '.WWSU-updates-wrapper { height:350px; }',
-            '#WWSU-script-list { float:left; width:175px; height:100%; padding-right:2px; margin-right:10px; overflow-y: auto; overflow-x: hidden; height:300px; }',
+            '#WWSU-script-list { float:left; width:175px; height:100%; padding-right:6px; margin-right:10px; overflow-y: auto; overflow-x: hidden; height:300px; }',
             '.WWSU-script-item { text-decoration: none; min-height:40px; display:flex; text-align: center; justify-content: center; align-items: center; margin:3px 3px 10px 3px; background-color:white; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 1px 0.25px; transition:all 200ms ease-in-out; cursor:pointer;}',
             '.WWSU-script-item:hover { text-decoration: none; }',
             '.WWSU-active { transform: translate3d(5px, 0px, 0px); box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 7px 0px; }',
