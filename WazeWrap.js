@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.01.04
+// @version      2019.02.18.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -13,7 +13,7 @@
 /* global W */
 /* global WazeWrap */
 
-var WazeWrap = {Ready: false, Version: "2019.02.01.04"};
+var WazeWrap = {Ready: false, Version: "2019.02.18.01"};
 
 (function() {
     'use strict';
@@ -94,11 +94,11 @@ var WazeWrap = {Ready: false, Version: "2019.02.01.04"};
     }
 
     function initializeScriptUpdateInterface(){
-        console.log("creating script udpate interface");
+        console.log("creating script update interface");
         injectCSS();
         var $section = $("<div>", {style:"padding:8px 16px", id:"wmeWWScriptUpdates"});
         $section.html([
-            '<div id="WWSU-Container" class="fa" style="position:fixed; top:20%; left:40%; z-index:1000; display:none;">',
+            '<div id="WWSU-Container" class="fa" style="position:fixed; top:20%; left:40%; z-index:1100; display:none;">',
             '<div id="WWSU-Close" class="fa-close fa-lg"></div>',
             '<div class="modal-heading">',
             '<h2>Script Updates</h2>',
@@ -128,11 +128,11 @@ var WazeWrap = {Ready: false, Version: "2019.02.01.04"};
             '#WWSU-Close { color:#000000; background-color:#ffffff; border:1px solid #ececec; border-radius:10px; height:25px; width:25px; position: absolute; right:14px; top:10px; cursor:pointer; padding: 5px 0px 0px 5px;}',
             '#WWSU-Container .modal-heading,.WWSU-updates-wrapper { font-family: "Helvetica Neue", Helvetica, "Open Sans", sans-serif; } ',
             '.WWSU-updates-wrapper { height:350px; }',
-            '#WWSU-script-list { float:left; width:175px; height:100%; padding-right:2px; margin-right:10px; overflow-y: auto; overflow-x: hidden; height:300px; }',
+            '#WWSU-script-list { float:left; width:175px; height:100%; padding-right:6px; margin-right:10px; overflow-y: auto; overflow-x: hidden; height:300px; }',
             '.WWSU-script-item { text-decoration: none; min-height:40px; display:flex; text-align: center; justify-content: center; align-items: center; margin:3px 3px 10px 3px; background-color:white; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 1px 0.25px; transition:all 200ms ease-in-out; cursor:pointer;}',
             '.WWSU-script-item:hover { text-decoration: none; }',
             '.WWSU-active { transform: translate3d(5px, 0px, 0px); box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 7px 0px; }',
-            '#WWSU-script-update-info { width:auto; background-color:white; height:275px; overflow-y:auto; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.09) 0px 6px 7px 0.09px; padding:15px;}',
+            '#WWSU-script-update-info { width:auto; background-color:white; height:275px; overflow-y:auto; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.09) 0px 6px 7px 0.09px; padding:15px; position:relative;}',
             '#WWSU-script-update-info div { display: none; }',
             '#WWSU-script-update-info div:target { display: block; }'
         ].join(' ');
@@ -1134,6 +1134,55 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             return Orthogonalize();
         };
     }
+	
+	function Events(){
+		const eventMap = {
+			'moveend': {register: W.map.events.register, unregister: W.map.events.unregister},
+			'zoomend': {register: W.map.events.register, unregister: W.map.events.unregister},
+			'selectionchanged': {register: W.selectionManager.events.register, unregister: W.selectionManager.events.unregister},
+			'change:editingHouseNumbers' : {register: W.editingMediator.on, unregister: W.editingMediator.off},
+			'afterundoaction': {register: W.model.actionManager.events.register, unregister: W.model.actionManager.events.unregister}
+		};
+		
+		var weakRefList = {};
+		
+		this.register = function(event, handler, errorHandler){
+			if(typeof list["event"] == "undefined")
+				list["event"] = [];
+
+			let newHandler = function(){
+				try {
+				  handler();
+				}
+				catch(err) {
+				  console.log(err.message);
+				  if(errorHandler)
+					  errorHandler(err);
+				}
+			};
+			
+			list["event"].push({origFunc: handler}, newFunc: newHandler});
+			if(event === 'change:editingHouseNumbers')
+				eventMap[event].register(event, newHandler);
+			else
+				eventMap[event].register(event, null, newHandler);
+		};
+		
+		this.unregister = function(event, handler){
+			let unregHandler;
+			for(let i=0; i < weakRefList[event].length; i++){
+				if(weakRefList[event][i].origFunc.toString() == handler.toString())
+					unregHandler = weakRefList[event][i].newFunc;
+			}
+			if(typeof unregHandler != "undefined"){
+				if(event === 'change:editingHouseNumbers')
+					eventMap[event].unregister(event, unregHandler);
+				else
+					eventMap[event].unregister(event, null, unregHandler);
+			}
+		};
+		
+	}
 
     function Interface() {
         /**
@@ -1436,15 +1485,53 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             buildLayerItem(checked);
         };
 
-        this.ShowScriptUpdate = function(scriptName, version, updateHTML){
-            let currCount = $('.WWSU-script-item').length;
-            let divID = (scriptName + ("" + version)).toLowerCase().replace(/[^a-z-_0-9]/g, '');
-            $('#WWSU-script-list').append(`<a href="#${divID}" class="WWSU-script-item ${currCount === 0 ? 'WWSU-active' : ''}">${scriptName}</a>`); //add the script's tab
-            $("#WWSU-updateCount").html(parseInt($("#WWSU-updateCount").html()) + 1); //increment the total script updates value
-            $('#WWSU-script-update-info').append(`<div id="${divID}"><h3>${version}</h3><br>${updateHTML}</div>`);
-            $('#WWSU-Container').show();
-            if(currCount === 0)
-                $('#WWSU-script-list').find("a")[0].click();
+        this.ShowScriptUpdate = function(scriptName, version, updateHTML, greasyforkLink = "", forumLink = ""){
+            let settings;
+            function loadSettings() {
+                var loadedSettings = $.parseJSON(localStorage.getItem("WWScriptUpdate"));
+                var defaultSettings = {
+                    ScriptUpdateHistory: {},
+                };
+                settings = loadedSettings ? loadedSettings : defaultSettings;
+                for (var prop in defaultSettings) {
+                    if (!settings.hasOwnProperty(prop))
+                        settings[prop] = defaultSettings[prop];
+                }
+            }
+
+            function saveSettings() {
+                if (localStorage) {
+                    var localsettings = {
+                        ScriptUpdateHistory: settings.ScriptUpdateHistory,
+                    };
+
+                    localStorage.setItem("WWScriptUpdate", JSON.stringify(localsettings));
+                }
+            }
+
+            loadSettings();
+
+            if(typeof settings.ScriptUpdateHistory[scriptName] === "undefined" || settings.ScriptUpdateHistory[scriptName] != version){
+                let currCount = $('.WWSU-script-item').length;
+                let divID = (scriptName + ("" + version)).toLowerCase().replace(/[^a-z-_0-9]/g, '');
+                $('#WWSU-script-list').append(`<a href="#${divID}" class="WWSU-script-item ${currCount === 0 ? 'WWSU-active' : ''}">${scriptName}</a>`); //add the script's tab
+                $("#WWSU-updateCount").html(parseInt($("#WWSU-updateCount").html()) + 1); //increment the total script updates value
+                let install="", forum="";
+                if(greasyforkLink != "")
+                    install = `<a href="${greasyforkLink}" target="_blank">Greasyfork</a>`;
+                if(forumLink != "")
+                    forum = `<a href="${forumLink}" target="_blank">Forum</a>`;
+                let footer = "";
+                if(forumLink != "" || greasyforkLink != ""){
+                    footer = `<span class="WWSUFooter" style="margin-bottom:2px; display:block; position:absolute; bottom:0;">${install}${(greasyforkLink != "" && forumLink != "") ? " | " : ""}${forum}</span>`;
+                }
+                $('#WWSU-script-update-info').append(`<div id="${divID}"><h3>${version}</h3><br>${updateHTML}${footer}</div>`);
+                $('#WWSU-Container').show();
+                if(currCount === 0)
+                    $('#WWSU-script-list').find("a")[0].click();
+                settings.ScriptUpdateHistory[scriptName] = version;
+                saveSettings();
+            }
         };
     }
 
