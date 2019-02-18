@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.18.01
+// @version      2019.02.18.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -12,8 +12,10 @@
 
 /* global W */
 /* global WazeWrap */
+/* global & */
+/* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.02.18.01"};
+var WazeWrap = {Ready: false, Version: "2019.02.18.02"};
 
 (function() {
     'use strict';
@@ -51,39 +53,40 @@ var WazeWrap = {Ready: false, Version: "2019.02.18.01"};
         WazeWrap.Util = new Util();
         WazeWrap.Require = new Require();
         WazeWrap.String = new String();
+		WazeWrap.Events = new Events();
 
         WazeWrap.getSelectedFeatures = function(){
             return W.selectionManager.getSelectedFeatures();
-        }
+        };
 
         WazeWrap.hasSelectedFeatures = function(){
             return W.selectionManager.hasSelectedFeatures();
-        }
+        };
 
         WazeWrap.selectFeature = function(feature){
             if(!W.selectionManager.select)
                 return W.selectionManager.selectFeature(feature);
 
             return W.selectionManager.select(feature);
-        }
+        };
 
         WazeWrap.selectFeatures = function(featureArray){
             if(!W.selectionManager.select)
                 return W.selectionManager.selectFeatures(featureArray);
             return W.selectionManager.select(featureArray);
-        }
+        };
 
         WazeWrap.hasPlaceSelected = function(){
             return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "venue");
-        }
+        };
 
         WazeWrap.hasSegmentSelected = function(){
             return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "segment");
-        }
+        };
 
         WazeWrap.hasMapCommentSelected = function(){
             return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "mapComment");
-        }
+        };
 
         initializeScriptUpdateInterface();
 
@@ -94,11 +97,11 @@ var WazeWrap = {Ready: false, Version: "2019.02.18.01"};
     }
 
     function initializeScriptUpdateInterface(){
-        console.log("creating script update interface");
+        console.log("creating script udpate interface");
         injectCSS();
         var $section = $("<div>", {style:"padding:8px 16px", id:"wmeWWScriptUpdates"});
         $section.html([
-            '<div id="WWSU-Container" class="fa" style="position:fixed; top:20%; left:40%; z-index:1100; display:none;">',
+            '<div id="WWSU-Container" class="fa" style="position:fixed; top:20%; left:40%; z-index:1000; display:none;">',
             '<div id="WWSU-Close" class="fa-close fa-lg"></div>',
             '<div class="modal-heading">',
             '<h2>Script Updates</h2>',
@@ -149,7 +152,7 @@ var WazeWrap = {Ready: false, Version: "2019.02.18.01"};
                 W.model.segments.getObjectArray()[0].__proto__.isTollRoad = function(){ return (this.attributes.fwdToll || this.attributes.revToll);};
         }
     }
-
+/* jshint ignore:start */
     function RestoreMissingOLKMLSupport(){
         if(!OL.Format.KML){
             OL.Format.KML=OL.Class(OL.Format.XML,{namespaces:{kml:"http://www.opengis.net/kml/2.2",gx:"http://www.google.com/kml/ext/2.2"},kmlns:"http://earth.google.com/kml/2.0",placemarksDesc:"No description available",foldersName:"OL export",foldersDesc:"Exported on "+new Date,extractAttributes:!0,kvpAttributes:!1,extractStyles:!1,extractTracks:!1,trackAttributes:null,internalns:null,features:null,styles:null,styleBaseUrl:"",fetched:null,maxDepth:0,initialize:function(a){this.regExes=
@@ -183,7 +186,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                                                   CLASS_NAME:"OpenLayers.Format.KML"});
         }
     }
-
+/* jshint ignore:end */
     function Geometry(){
         //Converts to "normal" GPS coordinates
         this.ConvertTo4326 = function (long, lat){
@@ -1161,7 +1164,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 				}
 			};
 			
-			list["event"].push({origFunc: handler}, newFunc: newHandler});
+			list["event"].push({origFunc: handler, newFunc: newHandler});
 			if(event === 'change:editingHouseNumbers')
 				eventMap[event].register(event, newHandler);
 			else
