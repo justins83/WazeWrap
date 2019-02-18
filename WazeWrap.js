@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.18.06
+// @version      2019.02.18.07
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.02.18.06"};
+var WazeWrap = {Ready: false, Version: "2019.02.18.07"};
 
 (function() {
     'use strict';
@@ -1141,17 +1141,17 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 	function Events(){
 		const eventMap = {
 			'moveend': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
-			'zoomend': {register: W.map.events.register, unregister: W.map.events.unregister},
-			'selectionchanged': {register: W.selectionManager.events.register, unregister: W.selectionManager.events.unregister},
-			'change:editingHouseNumbers' : {register: W.editingMediator.on, unregister: W.editingMediator.off},
-			'afterundoaction': {register: W.model.actionManager.events.register, unregister: W.model.actionManager.events.unregister}
+			'zoomend': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
+			'selectionchanged': {register: function(p1, p2, p3){W.selectionManager.events.register(p1, p2, p3)}, unregister: function(p1, p2, p3){W.selectionManager.events.unregister(p1, p2, p3)}},
+			'change:editingHouseNumbers' : {register: function(p1, p2){W.editingMediator.on(p1, p2);}, unregister: function(p1, p2){W.editingMediator.off(p1, p2);}},
+			'afterundoaction': {register: function(p1, p2, p3){W.model.actionManager.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.model.actionManager.events.unregister(p1, p2, p3);}}
 		};
 		
-		var weakRefList = {};
+		var eventHandlerList = {};
 		
 		this.register = function(event, handler, errorHandler){
-			if(typeof weakRefList[event] == "undefined")
-				weakRefList[event] = [];
+			if(typeof eventHandlerList[event] == "undefined")
+				eventHandlerList[event] = [];
 
 			let newHandler = function(){
 				try {
@@ -1164,7 +1164,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 				}
 			};
 			
-			weakRefList[event].push({origFunc: handler, newFunc: newHandler});
+			eventHandlerList[event].push({origFunc: handler, newFunc: newHandler});
 			if(event === 'change:editingHouseNumbers')
 				eventMap[event].register(event, newHandler);
 			else
@@ -1173,9 +1173,9 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 		
 		this.unregister = function(event, handler){
 			let unregHandler;
-			for(let i=0; i < weakRefList[event].length; i++){
-				if(weakRefList[event][i].origFunc.toString() == handler.toString())
-					unregHandler = weakRefList[event][i].newFunc;
+			for(let i=0; i < eventHandlerList[event].length; i++){
+				if(eventHandlerList[event][i].origFunc.toString() == handler.toString())
+					unregHandler = eventHandlerList[event][i].newFunc;
 			}
 			if(typeof unregHandler != "undefined"){
 				if(event === 'change:editingHouseNumbers')
