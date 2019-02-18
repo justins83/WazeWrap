@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.18.07
+// @version      2019.02.18.08
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.02.18.07"};
+var WazeWrap = {Ready: false, Version: "2019.02.18.08"};
 
 (function() {
     'use strict';
@@ -1149,7 +1149,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 		
 		var eventHandlerList = {};
 		
-		this.register = function(event, handler, errorHandler){
+		this.register = function(event, context, handler, errorHandler){
 			if(typeof eventHandlerList[event] == "undefined")
 				eventHandlerList[event] = [];
 
@@ -1168,10 +1168,10 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 			if(event === 'change:editingHouseNumbers')
 				eventMap[event].register(event, newHandler);
 			else
-				eventMap[event].register(event, null, newHandler);
+				eventMap[event].register(event, context, newHandler);
 		};
 		
-		this.unregister = function(event, handler){
+		this.unregister = function(event, context, handler){
 			let unregHandler;
 			for(let i=0; i < eventHandlerList[event].length; i++){
 				if(eventHandlerList[event][i].origFunc.toString() == handler.toString())
@@ -1181,7 +1181,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 				if(event === 'change:editingHouseNumbers')
 					eventMap[event].unregister(event, unregHandler);
 				else
-					eventMap[event].unregister(event, null, unregHandler);
+					eventMap[event].unregister(event, context, unregHandler);
 			}
 		};
 		
