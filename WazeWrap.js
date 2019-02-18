@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.18.02
+// @version      2019.02.18.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.02.18.02"};
+var WazeWrap = {Ready: false, Version: "2019.02.18.01"};
 
 (function() {
     'use strict';
@@ -1150,8 +1150,8 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 		var weakRefList = {};
 		
 		this.register = function(event, handler, errorHandler){
-			if(typeof list["event"] == "undefined")
-				list["event"] = [];
+			if(typeof weakRefList["event"] == "undefined")
+				weakRefList["event"] = [];
 
 			let newHandler = function(){
 				try {
@@ -1164,7 +1164,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 				}
 			};
 			
-			list["event"].push({origFunc: handler, newFunc: newHandler});
+			weakRefList["event"].push({origFunc: handler, newFunc: newHandler});
 			if(event === 'change:editingHouseNumbers')
 				eventMap[event].register(event, newHandler);
 			else
