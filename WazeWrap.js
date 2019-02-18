@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.18.05
+// @version      2019.02.18.06
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.02.18.05"};
+var WazeWrap = {Ready: false, Version: "2019.02.18.06"};
 
 (function() {
     'use strict';
@@ -1140,7 +1140,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 	
 	function Events(){
 		const eventMap = {
-			'moveend': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: W.map.events.unregister},
+			'moveend': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
 			'zoomend': {register: W.map.events.register, unregister: W.map.events.unregister},
 			'selectionchanged': {register: W.selectionManager.events.register, unregister: W.selectionManager.events.unregister},
 			'change:editingHouseNumbers' : {register: W.editingMediator.on, unregister: W.editingMediator.off},
