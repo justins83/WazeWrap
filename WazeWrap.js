@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.02.01
+// @version      2019.02.18.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -12,8 +12,10 @@
 
 /* global W */
 /* global WazeWrap */
+/* global & */
+/* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.02.02.01"};
+var WazeWrap = {Ready: false, Version: "2019.02.18.01"};
 
 (function() {
     'use strict';
@@ -51,39 +53,40 @@ var WazeWrap = {Ready: false, Version: "2019.02.02.01"};
         WazeWrap.Util = new Util();
         WazeWrap.Require = new Require();
         WazeWrap.String = new String();
+		WazeWrap.Events = new Events();
 
         WazeWrap.getSelectedFeatures = function(){
             return W.selectionManager.getSelectedFeatures();
-        }
+        };
 
         WazeWrap.hasSelectedFeatures = function(){
             return W.selectionManager.hasSelectedFeatures();
-        }
+        };
 
         WazeWrap.selectFeature = function(feature){
             if(!W.selectionManager.select)
                 return W.selectionManager.selectFeature(feature);
 
             return W.selectionManager.select(feature);
-        }
+        };
 
         WazeWrap.selectFeatures = function(featureArray){
             if(!W.selectionManager.select)
                 return W.selectionManager.selectFeatures(featureArray);
             return W.selectionManager.select(featureArray);
-        }
+        };
 
         WazeWrap.hasPlaceSelected = function(){
             return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "venue");
-        }
+        };
 
         WazeWrap.hasSegmentSelected = function(){
             return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "segment");
-        }
+        };
 
         WazeWrap.hasMapCommentSelected = function(){
             return (W.selectionManager.hasSelectedFeatures() && W.selectionManager.getSelectedFeatures()[0].model.type === "mapComment");
-        }
+        };
 
         initializeScriptUpdateInterface();
 
@@ -149,7 +152,7 @@ var WazeWrap = {Ready: false, Version: "2019.02.02.01"};
                 W.model.segments.getObjectArray()[0].__proto__.isTollRoad = function(){ return (this.attributes.fwdToll || this.attributes.revToll);};
         }
     }
-
+/* jshint ignore:start */
     function RestoreMissingOLKMLSupport(){
         if(!OL.Format.KML){
             OL.Format.KML=OL.Class(OL.Format.XML,{namespaces:{kml:"http://www.opengis.net/kml/2.2",gx:"http://www.google.com/kml/ext/2.2"},kmlns:"http://earth.google.com/kml/2.0",placemarksDesc:"No description available",foldersName:"OL export",foldersDesc:"Exported on "+new Date,extractAttributes:!0,kvpAttributes:!1,extractStyles:!1,extractTracks:!1,trackAttributes:null,internalns:null,features:null,styles:null,styleBaseUrl:"",fetched:null,maxDepth:0,initialize:function(a){this.regExes=
@@ -183,7 +186,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                                                   CLASS_NAME:"OpenLayers.Format.KML"});
         }
     }
-
+/* jshint ignore:end */
     function Geometry(){
         //Converts to "normal" GPS coordinates
         this.ConvertTo4326 = function (long, lat){
@@ -1134,6 +1137,59 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             return Orthogonalize();
         };
     }
+	
+	function Events(){
+		const eventMap = {
+			'moveend': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
+			'zoomend': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
+			'mousemove': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
+			'changelayer': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
+			'selectionchanged': {register: function(p1, p2, p3){W.selectionManager.events.register(p1, p2, p3)}, unregister: function(p1, p2, p3){W.selectionManager.events.unregister(p1, p2, p3)}},
+			'change:editingHouseNumbers' : {register: function(p1, p2){W.editingMediator.on(p1, p2);}, unregister: function(p1, p2){W.editingMediator.off(p1, p2);}},
+			'afterundoaction': {register: function(p1, p2, p3){W.model.actionManager.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.model.actionManager.events.unregister(p1, p2, p3);}},
+			'afterclearactions': {register: function(p1, p2, p3){W.model.actionManager.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.model.actionManager.events.unregister(p1, p2, p3);}},
+			'afteraction': {register: function(p1, p2, p3){W.model.actionManager.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.model.actionManager.events.unregister(p1, p2, p3);}}
+		};
+		
+		var eventHandlerList = {};
+		
+		this.register = function(event, context, handler, errorHandler){
+			if(typeof eventHandlerList[event] == "undefined")
+				eventHandlerList[event] = [];
+
+			let newHandler = function(){
+				try {
+				  handler();
+				}
+				catch(err) {
+				  console.error(`Error thrown in: ${handler.name}\n ${err}`);
+				  if(errorHandler)
+					  errorHandler(err);
+				}
+			};
+			
+			eventHandlerList[event].push({origFunc: handler, newFunc: newHandler});
+			if(event === 'change:editingHouseNumbers')
+				eventMap[event].register(event, newHandler);
+			else
+				eventMap[event].register(event, context, newHandler);
+		};
+		
+		this.unregister = function(event, context, handler){
+			let unregHandler;
+			for(let i=0; i < eventHandlerList[event].length; i++){
+				if(eventHandlerList[event][i].origFunc.toString() == handler.toString())
+					unregHandler = eventHandlerList[event][i].newFunc;
+			}
+			if(typeof unregHandler != "undefined"){
+				if(event === 'change:editingHouseNumbers')
+					eventMap[event].unregister(event, unregHandler);
+				else
+					eventMap[event].unregister(event, context, unregHandler);
+			}
+		};
+		
+	}
 
     function Interface() {
         /**
