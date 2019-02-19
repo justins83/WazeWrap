@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.18.01
+// @version      2019.02.19.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.02.18.01"};
+var WazeWrap = {Ready: false, Version: "2019.02.19.01"};
 
 (function() {
     'use strict';
@@ -1143,12 +1143,16 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 			'moveend': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
 			'zoomend': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
 			'mousemove': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
+			'mouseup': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
+			'mousedown': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
 			'changelayer': {register: function(p1, p2, p3){W.map.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.map.events.unregister(p1, p2, p3);}},
 			'selectionchanged': {register: function(p1, p2, p3){W.selectionManager.events.register(p1, p2, p3)}, unregister: function(p1, p2, p3){W.selectionManager.events.unregister(p1, p2, p3)}},
-			'change:editingHouseNumbers' : {register: function(p1, p2){W.editingMediator.on(p1, p2);}, unregister: function(p1, p2){W.editingMediator.off(p1, p2);}},
 			'afterundoaction': {register: function(p1, p2, p3){W.model.actionManager.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.model.actionManager.events.unregister(p1, p2, p3);}},
 			'afterclearactions': {register: function(p1, p2, p3){W.model.actionManager.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.model.actionManager.events.unregister(p1, p2, p3);}},
-			'afteraction': {register: function(p1, p2, p3){W.model.actionManager.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.model.actionManager.events.unregister(p1, p2, p3);}}
+			'afteraction': {register: function(p1, p2, p3){W.model.actionManager.events.register(p1, p2, p3);}, unregister: function(p1, p2, p3){W.model.actionManager.events.unregister(p1, p2, p3);}},
+			'change:editingHouseNumbers' : {register: function(p1, p2){W.editingMediator.on(p1, p2);}, unregister: function(p1, p2){W.editingMediator.off(p1, p2);}},
+			'change:mode' : {register: function(p1, p2){W.app.bind(p1, p2);}, unregister: function(p1, p2){W.app.unbind(p1, p2);}},
+			'change:isImperial' : {register: function(p1){W.prefs.on(p1);}, unregister: function(p1){W.prefs.off(p1);}}
 		};
 		
 		var eventHandlerList = {};
@@ -1169,8 +1173,10 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 			};
 			
 			eventHandlerList[event].push({origFunc: handler, newFunc: newHandler});
-			if(event === 'change:editingHouseNumbers')
+			if(event === 'change:editingHouseNumbers' || event === 'change:mode')
 				eventMap[event].register(event, newHandler);
+			else if(event === 'change:isImperial')
+				eventMap[event].register(newHandler);
 			else
 				eventMap[event].register(event, context, newHandler);
 		};
@@ -1182,8 +1188,10 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 					unregHandler = eventHandlerList[event][i].newFunc;
 			}
 			if(typeof unregHandler != "undefined"){
-				if(event === 'change:editingHouseNumbers')
+				if(event === 'change:editingHouseNumbers' || event === 'change:mode')
 					eventMap[event].unregister(event, unregHandler);
+				else if(event === 'change:isImperial')
+					eventMap[event].unregister(unregHandler);
 				else
 					eventMap[event].unregister(event, context, unregHandler);
 			}
