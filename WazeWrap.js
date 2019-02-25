@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.19.02
+// @version      2019.02.25.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -1216,7 +1216,8 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                     this.title = title;
                     this.callback = callback;
                     this.shortcut = {};
-                    this.shortcut[shortcut] = name;
+                    if(shortcut.length > 0)
+                    	this.shortcut[shortcut] = name;
                     if ('object' !== typeof scope)
                         this.scope = null;
                     else
