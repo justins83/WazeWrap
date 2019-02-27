@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.25.01
+// @version      2019.02.27.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.02.19.02"};
+var WazeWrap = {Ready: false, Version: "2019.02.27.02"};
 
 (function() {
     'use strict';
@@ -150,6 +150,14 @@ var WazeWrap = {Ready: false, Version: "2019.02.19.02"};
                 W.model.segments.getObjectArray()[0].__proto__.getDirection = function(){return (this.attributes.fwdDirection ? 1 : 0) + (this.attributes.revDirection ? 2 : 0);};
             if(typeof W.model.segments.getObjectArray()[0].model.isTollRoad == "undefined")
                 W.model.segments.getObjectArray()[0].__proto__.isTollRoad = function(){ return (this.attributes.fwdToll || this.attributes.revToll);};
+			if(typeof W.model.segments.getObjectArray()[0].isLockedByHigherRank == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.isLockedByHigherRank = function() {return !(!this.attributes.lockRank || !this.model.loginManager.isLoggedIn()) && this.getLockRank() > this.model.loginManager.user.rank;};
+			if(typeof W.model.segments.getObjectArray()[0].isDrivable == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.isDrivable = function() {let V=[5,10,16,18,19]; return !V.includes(this.attributes.roadType);};
+			if(typeof W.model.segments.getObjectArray()[0].isWalkingRoadType == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.isWalkingRoadType = function() {let x=[5,10,16]; return x.includes(this.attributes.roadType);};
+			if(typeof W.model.segments.getObjectArray()[0].isRoutable == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.isRoutable = function() {let P=[1,2,7,6,3]; return P.includes(this.attributes.roadType);};
         }
     }
 /* jshint ignore:start */
