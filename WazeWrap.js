@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.27.01
+// @version      2019.02.27.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -43,7 +43,10 @@ var WazeWrap = {Ready: false, Version: "2019.02.27.02"};
         //SetUpRequire();
         W.map.events.register("moveend", this, RestoreMissingSegmentFunctions);
         W.map.events.register("zoomend", this, RestoreMissingSegmentFunctions);
+        W.map.events.register("moveend", this, RestoreMissingNodeFunctions);
+        W.map.events.register("zoomend", this, RestoreMissingNodeFunctions);
         RestoreMissingSegmentFunctions();
+		RestoreMissingNodeFunctions();
         RestoreMissingOLKMLSupport();
 
         WazeWrap.Geometry = new Geometry();
@@ -158,8 +161,27 @@ var WazeWrap = {Ready: false, Version: "2019.02.27.02"};
 				W.model.segments.getObjectArray()[0].__proto__.isWalkingRoadType = function() {let x=[5,10,16]; return x.includes(this.attributes.roadType);};
 			if(typeof W.model.segments.getObjectArray()[0].isRoutable == "undefined")
 				W.model.segments.getObjectArray()[0].__proto__.isRoutable = function() {let P=[1,2,7,6,3]; return P.includes(this.attributes.roadType);};
+			if(typeof W.model.segments.getObjectArray()[0].isInBigJunction == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.isInBigJunction = function() {return this.isBigJunctionShort() || this.hasFromBigJunction() || this.hasToBigJunction();};
+			if(typeof W.model.segments.getObjectArray()[0].isBigJunctionShort == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.isBigJunctionShort = function() {return null != this.attributes.crossroadID;};
+			if(typeof W.model.segments.getObjectArray()[0].hasFromBigJunction == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.hasFromBigJunction = function(e) {return null != e ? this.attributes.fromCrossroads.includes(e) : this.attributes.fromCrossroads.length > 0;};
+			if(typeof W.model.segments.getObjectArray()[0].hasToBigJunction == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.hasToBigJunction = function(e) {return null != e ? this.attributes.toCrossroads.includes(e) : this.attributes.toCrossroads.length > 0;};
+			if(typeof W.model.segments.getObjectArray()[0].getRoundabout == "undefined")
+				W.model.segments.getObjectArray()[0].__proto__.getRoundabout = function() {return this.isInRoundabout() ? this.model.junctions.getObjectById(this.attributes.junctionID) : null;};
         }
     }
+	
+	function RestoreMissingNodeFunctions(){
+		if(W.model.nodes.getObjectArray().length > 0){
+			W.map.events.unregister("moveend", this, RestoreMissingNodeFunctions);
+            W.map.events.unregister("zoomend", this, RestoreMissingNodeFunctions);
+			if(typeof W.model.nodes.getObjectArray()[0].areConnectionsEditable == "undefined")
+				W.model.nodes.getObjectArray()[0].__proto__.areConnectionsEditable = function() {var e = this.model.segments.getByIds(this.attributes.segIDs); return e.length === this.attributes.segIDs.length && e.every(function(e) {return e.canEditConnections();});};
+		}
+	}
 /* jshint ignore:start */
     function RestoreMissingOLKMLSupport(){
         if(!OL.Format.KML){
