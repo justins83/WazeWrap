@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.02.27.02
+// @version      2019.03.05.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.02.27.02"};
+var WazeWrap = {Ready: false, Version: "2019.03.05.1"};
 
 (function() {
     'use strict';
@@ -1441,15 +1441,17 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             }
 
             appendTab(){
-                WazeWrap.Util.waitForElement(
-                    this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
-                    function () {
-                        $(this.TAB_SELECTOR).append(this.$tab);
-                        $(this.CONTENT_SELECTOR).first().append(this.$content);
-                        if (this.callback) {
-                            this.callback.call(this.context);
-                        }
-                    }, this);
+		    if(W.app.attributes.mode === 0){ /*Only in default mode */
+			WazeWrap.Util.waitForElement(
+			    this.TAB_SELECTOR + ',' + this.CONTENT_SELECTOR,
+			    function () {
+				$(this.TAB_SELECTOR).append(this.$tab);
+				$(this.CONTENT_SELECTOR).first().append(this.$content);
+				if (this.callback) {
+				    this.callback.call(this.context);
+				}
+			    }, this);
+		    }
             }
 
             clearContent(){
