@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         WazeWrap
+// @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
 // @version      2019.03.05.03
 // @description  A base library for WME script writers
