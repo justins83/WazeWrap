@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.03.05.01
+// @version      2019.03.06.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.03.05.1"};
+var WazeWrap = {Ready: false, Version: "2019.03.06.1"};
 
 (function() {
     'use strict';
@@ -139,7 +139,7 @@ var WazeWrap = {Ready: false, Version: "2019.03.05.1"};
             '.WWSU-script-item:hover { text-decoration: none; }',
             '.WWSU-active { transform: translate3d(5px, 0px, 0px); box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 7px 0px; }',
             '#WWSU-script-update-info { width:auto; background-color:white; height:275px; overflow-y:auto; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.09) 0px 6px 7px 0.09px; padding:15px; position:relative;}',
-            '#WWSU-script-update-info div { display: none; }',
+            '#WWSU-script-update-info div { display: none;}',
             '#WWSU-script-update-info div:target { display: block; }'
         ].join(' ');
         $('<style type="text/css">' + css + '</style>').appendTo('head');
@@ -1567,9 +1567,9 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                     forum = `<a href="${forumLink}" target="_blank">Forum</a>`;
                 let footer = "";
                 if(forumLink != "" || greasyforkLink != ""){
-                    footer = `<span class="WWSUFooter" style="margin-bottom:2px; display:block; position:absolute; bottom:0;">${install}${(greasyforkLink != "" && forumLink != "") ? " | " : ""}${forum}</span>`;
+                    footer = `<span class="WWSUFooter" style="margin-bottom:2px; display:block;">${install}${(greasyforkLink != "" && forumLink != "") ? " | " : ""}${forum}</span>`;
                 }
-                $('#WWSU-script-update-info').append(`<div id="${divID}"><h3>${version}</h3><br>${updateHTML}${footer}</div>`);
+                $('#WWSU-script-update-info').append(`<div id="${divID}"><span><h3>${version}</h3><br>${updateHTML}</span>${footer}</div>`);
                 $('#WWSU-Container').show();
                 if(currCount === 0)
                     $('#WWSU-script-list').find("a")[0].click();
