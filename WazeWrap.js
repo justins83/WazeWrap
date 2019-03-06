@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         WazeWrapBeta
+// @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.03.06.01
+// @version      2019.03.05.03
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.03.06.1"};
+var WazeWrap = {Ready: false, Version: "2019.03.05.1"};
 
 (function() {
     'use strict';
@@ -1567,9 +1567,9 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                     forum = `<a href="${forumLink}" target="_blank">Forum</a>`;
                 let footer = "";
                 if(forumLink != "" || greasyforkLink != ""){
-                    footer = `<div class="WWSUFooter" style="margin-bottom:2px; display:block; position:absolute; bottom:-10px;">${install}${(greasyforkLink != "" && forumLink != "") ? " | " : ""}${forum}</div>`;
+                    footer = `<span class="WWSUFooter" style="margin-bottom:2px; display:block;">${install}${(greasyforkLink != "" && forumLink != "") ? " | " : ""}${forum}</span>`;
                 }
-                $('#WWSU-script-update-info').append(`<div id="${divID}"><div><h3>${version}</h3><br>${updateHTML}</div>${footer}</div>`);
+                $('#WWSU-script-update-info').append(`<div id="${divID}"><span><h3>${version}</h3><br>${updateHTML}</span>${footer}</div>`);
                 $('#WWSU-Container').show();
                 if(currCount === 0)
                     $('#WWSU-script-list').find("a")[0].click();
