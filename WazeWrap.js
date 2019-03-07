@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.03.06.02
+// @version      2019.03.06.03
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.03.06.2"};
+var WazeWrap = {Ready: false, Version: "2019.03.06.03"};
 
 (function() {
     'use strict';
@@ -1193,7 +1193,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 
 			let newHandler = function(){
 				try {
-				  handler(arguments);
+				  handler(...arguments);
 				}
 				catch(err) {
 				  console.error(`Error thrown in: ${handler.name}\n ${err}`);
