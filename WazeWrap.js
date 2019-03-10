@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.03.05.03
+// @version      2019.03.09.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.03.05.1"};
+var WazeWrap = {Ready: false, Version: "2019.03.09.1"};
 
 (function() {
     'use strict';
@@ -1464,70 +1464,79 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             }
         }
 
-        this.AddLayerCheckbox = function(group, checkboxText, checked, callback){
-            group = group.toLowerCase();
-            let normalizedText = checkboxText.toLowerCase().replace(/\s/g, '_');
-            let checkboxID = "layer-switcher-item_" + normalizedText;
-            let groupPrefix = 'layer-switcher-group_';
-            let groupClass = groupPrefix + group.toLowerCase();
-            sessionStorage[normalizedText] = checked;
+        this.AddLayerCheckbox = function(group, checkboxText, checked, callback, layer){
+		group = group.toLowerCase();
+		let normalizedText = checkboxText.toLowerCase().replace(/\s/g, '_');
+		let checkboxID = "layer-switcher-item_" + normalizedText;
+		let groupPrefix = 'layer-switcher-group_';
+		let groupClass = groupPrefix + group.toLowerCase();
+		sessionStorage[normalizedText] = checked;
 
-            let CreateParentGroup = function(groupChecked){
-                let groupList = $('.layer-switcher').find('.list-unstyled.togglers');
-                let checkboxText = group.charAt(0).toUpperCase() + group.substr(1);
-                let newLI = $('<li class="group">');
-                newLI.html([
-                    '<div class="controls-container toggler">',
-                    '<input class="' + groupClass + '" id="' + groupClass + '" type="checkbox" ' + (groupChecked ? 'checked' : '') +'>',
-                    '<label for="' + groupClass + '">',
-                    '<span class="label-text">'+ checkboxText + '</span>',
-                    '</label></div>',
-                    '<ul class="children"></ul>'
-                ].join(' '));
+		let CreateParentGroup = function(groupChecked){
+			let groupList = $('.layer-switcher').find('.list-unstyled.togglers');
+			let checkboxText = group.charAt(0).toUpperCase() + group.substr(1);
+			let newLI = $('<li class="group">');
+			newLI.html([
+				'<div class="controls-container toggler">',
+				'<input class="' + groupClass + '" id="' + groupClass + '" type="checkbox" ' + (groupChecked ? 'checked' : '') +'>',
+				'<label for="' + groupClass + '">',
+				'<span class="label-text">'+ checkboxText + '</span>',
+				'</label></div>',
+				'<ul class="children"></ul>'
+			].join(' '));
 
-                groupList.append(newLI);
-                $('#' + groupClass).change(function(){sessionStorage[groupClass] = this.checked;});
-            };
+			groupList.append(newLI);
+			$('#' + groupClass).change(function(){sessionStorage[groupClass] = this.checked;});
+		};
 
-            if(group !== "issues" && group !== "places" && group !== "road" && group !== "display") //"non-standard" group, check its existence
-                if($('.'+groupClass).length === 0){ //Group doesn't exist yet, create it
-                    let isParentChecked = (typeof sessionStorage[groupClass] == "undefined" ? true : sessionStorage[groupClass]=='true');
-                    CreateParentGroup(isParentChecked);  //create the group
-                    sessionStorage[groupClass] = isParentChecked;
+		if(group !== "issues" && group !== "places" && group !== "road" && group !== "display") //"non-standard" group, check its existence
+			if($('.'+groupClass).length === 0){ //Group doesn't exist yet, create it
+				let isParentChecked = (typeof sessionStorage[groupClass] == "undefined" ? true : sessionStorage[groupClass]=='true');
+				CreateParentGroup(isParentChecked);  //create the group
+				sessionStorage[groupClass] = isParentChecked;
 
-                    W.app.modeController.model.bind('change:mode', function(model, modeId, context){ //make it reappear after changing modes
-                        CreateParentGroup((sessionStorage[groupClass]=='true'));
-                    });
-                }
+				W.app.modeController.model.bind('change:mode', function(model, modeId, context){ //make it reappear after changing modes
+					CreateParentGroup((sessionStorage[groupClass]=='true'));
+				});
+			}
 
-            var buildLayerItem = function(isChecked){
-                let groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
-                let $li = $('<li>');
-                $li.html([
-                    '<div class="controls-container toggler">',
-                    '<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
-                    '<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
-                    '</div>',
-                ].join(' '));
+		var buildLayerItem = function(isChecked){
+			let groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
+			let $li = $('<li>');
+			$li.html([
+				'<div class="controls-container toggler">',
+				'<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
+				'<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
+				'</div>',
+			].join(' '));
 
-                groupChildren.append($li);
-                $('#' + checkboxID).prop('checked', isChecked);
-                $('#' + checkboxID).change(function(){callback(this.checked); sessionStorage[normalizedText] = this.checked;});
-                if(!$('#' + groupClass).is(':checked')){
-                    $('#' + checkboxID).prop('disabled', true);
-                    callback(false);
-                }
+			groupChildren.append($li);
+			$('#' + checkboxID).prop('checked', isChecked);
+			$('#' + checkboxID).change(function(){callback(this.checked); sessionStorage[normalizedText] = this.checked;});
+			if(!$('#' + groupClass).is(':checked')){
+				$('#' + checkboxID).prop('disabled', true);
+				if(typeof layer === 'undefined')
+					callback(false);
+				else
+					layer.setVisibility(false);
+			}
 
-                $('#' + groupClass).change(function(){$('#' + checkboxID).prop('disabled', !this.checked); callback(!this.checked ? false : sessionStorage[normalizedText]=='true');});
-            };
+			$('#' + groupClass).change(function(){
+				$('#' + checkboxID).prop('disabled', !this.checked);
+				if(typeof layer === 'undefined')
+					callback(!this.checked ? false : sessionStorage[normalizedText]=='true');
+				else
+					layer.setVisibility(sessionStorage[normalizedText]=='true');
+				});
+		};
 
 
-            W.app.modeController.model.bind('change:mode', function(model, modeId, context){
-                buildLayerItem((sessionStorage[normalizedText]=='true'));
-            });
+		W.app.modeController.model.bind('change:mode', function(model, modeId, context){
+			buildLayerItem((sessionStorage[normalizedText]=='true'));
+		});
 
-            buildLayerItem(checked);
-        };
+		buildLayerItem(checked);
+	};
 
         this.ShowScriptUpdate = function(scriptName, version, updateHTML, greasyforkLink = "", forumLink = ""){
             let settings;
