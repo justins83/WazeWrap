@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.03.10.1"};
+var WazeWrap = {Ready: false, Version: "2019.04.01.1"};
 
 (function() {
     'use strict';
@@ -1211,15 +1211,17 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 		
 		this.unregister = function(event, context, handler){
 			let unregHandler;
-			for(let i=0; i < eventHandlerList[event].length; i++){
-				if(eventHandlerList[event][i].origFunc.toString() == handler.toString())
-					unregHandler = eventHandlerList[event][i].newFunc;
-			}
-			if(typeof unregHandler != "undefined"){
-				if(event === 'change:editingHouseNumbers' || event === 'change:mode' || event === 'change:isImperial')
-					eventMap[event].unregister(event, unregHandler);
-				else
-					eventMap[event].unregister(event, context, unregHandler);
+			if(eventHandlerList){ //Must check in case a script is trying to unregister before registering an eventhandler and one has not yet been created
+				for(let i=0; i < eventHandlerList[event].length; i++){
+					if(eventHandlerList[event][i].origFunc.toString() == handler.toString())
+						unregHandler = eventHandlerList[event][i].newFunc;
+				}
+				if(typeof unregHandler != "undefined"){
+					if(event === 'change:editingHouseNumbers' || event === 'change:mode' || event === 'change:isImperial')
+						eventMap[event].unregister(event, unregHandler);
+					else
+						eventMap[event].unregister(event, context, unregHandler);
+				}
 			}
 		};
 		
@@ -1564,7 +1566,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 
             loadSettings();
 
-            if(typeof settings.ScriptUpdateHistory[scriptName] === "undefined" || settings.ScriptUpdateHistory[scriptName] != version){
+            if((updateHTML && updateHTML.length > 0) && (typeof settings.ScriptUpdateHistory[scriptName] === "undefined" || settings.ScriptUpdateHistory[scriptName] != version}){
                 let currCount = $('.WWSU-script-item').length;
                 let divID = (scriptName + ("" + version)).toLowerCase().replace(/[^a-z-_0-9]/g, '');
                 $('#WWSU-script-list').append(`<a href="#${divID}" class="WWSU-script-item ${currCount === 0 ? 'WWSU-active' : ''}">${scriptName}</a>`); //add the script's tab
