@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.01.02
+// @version      2019.04.01.03
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.01.02"};
+var WazeWrap = {Ready: false, Version: "2019.04.01.03"};
 
 (function() {
     'use strict';
@@ -1211,7 +1211,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 		
 		this.unregister = function(event, context, handler){
 			let unregHandler;
-			if(eventHandlerList){ //Must check in case a script is trying to unregister before registering an eventhandler and one has not yet been created
+			if(eventHandlerList && eventHandlerList[event]){ //Must check in case a script is trying to unregister before registering an eventhandler and one has not yet been created
 				for(let i=0; i < eventHandlerList[event].length; i++){
 					if(eventHandlerList[event][i].origFunc.toString() == handler.toString())
 						unregHandler = eventHandlerList[event][i].newFunc;
