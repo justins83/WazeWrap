@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.02.01
+// @version      2019.04.02.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.02.01"};
+var WazeWrap = {Ready: false, Version: "2019.04.02.02"};
 
 (function() {
     'use strict';
@@ -1167,39 +1167,39 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             return Orthogonalize();
         };
 		
-		this.findSegment = asyc function(server, segmentID){
-			let apiURL = location.origin;
-			switch(server){
-				case 'row':
-					apiURL += '/row-Descartes/app/HouseNumbers?ids=';
-					break;
-				case 'il':
-					apiURL += '/il-Descartes/app/HouseNumbers?ids=';
-					break;
-				case 'usa':
-				default:
-					apiURL += '/Descartes/app/HouseNumbers?ids=';
-			}
-			let response, result = null;
-			try{
-				response = await $.get(`${apiURL + segmentID}`);
-				if(response && response.editAreas.objects.length > 0){
-					let segGeoArea = response.editAreas.objects[0].geometry.coordinates[0];
-					let ringGeo = [];
-					for(let i=0; i < segGeoArea.length - 1; i++)
-						ringGeo.push(new OL.Geometry.Point(segGeoArea[i][0], segGeoArea[i][1]));
-					if(ringGeo.length>0){
-						let ring = new OL.Geometry.LinearRing(ringGeo);
-						result = ring.getCentroid();
-					}
+	this.findSegment = async function(server, segmentID){
+		let apiURL = location.origin;
+		switch(server){
+			case 'row':
+				apiURL += '/row-Descartes/app/HouseNumbers?ids=';
+				break;
+			case 'il':
+				apiURL += '/il-Descartes/app/HouseNumbers?ids=';
+				break;
+			case 'usa':
+			default:
+				apiURL += '/Descartes/app/HouseNumbers?ids=';
+		}
+		let response, result = null;
+		try{
+			response = await $.get(`${apiURL + segmentID}`);
+			if(response && response.editAreas.objects.length > 0){
+				let segGeoArea = response.editAreas.objects[0].geometry.coordinates[0];
+				let ringGeo = [];
+				for(let i=0; i < segGeoArea.length - 1; i++)
+					ringGeo.push(new OL.Geometry.Point(segGeoArea[i][0], segGeoArea[i][1]));
+				if(ringGeo.length>0){
+					let ring = new OL.Geometry.LinearRing(ringGeo);
+					result = ring.getCentroid();
 				}
 			}
-			catch(err){
-				console.log(err);
-			}
-
-			return result;
 		}
+		catch(err){
+			console.log(err);
+		}
+
+		return result;
+	};
     }
 	
 	function Events(){
