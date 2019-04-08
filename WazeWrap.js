@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.02.02
+// @version      2019.04.08.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.02.02"};
+var WazeWrap = {Ready: false, Version: "2019.04.08.01"};
 
 (function() {
     'use strict';
@@ -1192,6 +1192,33 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 					let ring = new OL.Geometry.LinearRing(ringGeo);
 					result = ring.getCentroid();
 				}
+			}
+		}
+		catch(err){
+			console.log(err);
+		}
+
+		return result;
+	};
+	
+	this.findVenue = async function(server, venueID){
+		let apiURL = location.origin;
+		switch(server){
+			case 'row':
+				apiURL += '/row-SearchServer/mozi?max_distance_kms=&lon=-84.22637999999993&lat=39.61097000000033&format=PROTO_JSON_FULL&venue_id=';
+				break;
+			case 'il':
+				apiURL += '/il-SearchServer/mozi?max_distance_kms=&lon=-84.22637999999993&lat=39.61097000000033&format=PROTO_JSON_FULL&venue_id=';
+				break;
+			case 'usa':
+			default:
+				apiURL += '/SearchServer/mozi?max_distance_kms=&lon=-84.22637999999993&lat=39.61097000000033&format=PROTO_JSON_FULL&venue_id=';
+		}
+		let response, result = null;
+		try{
+			response = await $.get(`${apiURL + venueID}`);
+			if(response && response.venue){
+				result = new OL.Geometry.Point(response.venue.location.x, response.venue.location.y);
 			}
 		}
 		catch(err){
