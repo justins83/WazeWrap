@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.08.01
+// @version      2019.04.11.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.08.01"};
+var WazeWrap = {Ready: false, Version: "2019.04.11.01"};
 
 (function() {
     'use strict';
@@ -1580,17 +1580,25 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 				$('#' + checkboxID).prop('disabled', true);
 				if(typeof layer === 'undefined')
 					callback(false);
-				else
-					layer.setVisibility(false);
+				else{
+					if($.isArray(layer))
+						$.each(layer, (k,v) => {v.setVisibility(false);});
+					else
+						layer.setVisibility(false);
+				}
 			}
 
 			$('#' + groupClass).change(function(){
 				$('#' + checkboxID).prop('disabled', !this.checked);
 				if(typeof layer === 'undefined')
 					callback(!this.checked ? false : sessionStorage[normalizedText]=='true');
-				else
-					layer.setVisibility(this.checked);
-				});
+				else{
+					if($.isArray(layer))
+						$.each(layer, (k, v) => {v.setVisibility(this.checked);});
+					else
+						layer.setVisibility(this.checked);
+				}
+			});
 		};
 
 
