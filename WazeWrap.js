@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.03.09.02
+// @version      2019.04.22.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.03.09.1"};
+var WazeWrap = {Ready: false, Version: "2019.04.22.01"};
 
 (function() {
     'use strict';
@@ -92,12 +92,42 @@ var WazeWrap = {Ready: false, Version: "2019.03.09.1"};
         };
 
         initializeScriptUpdateInterface();
+		initializeToastr();
 
         WazeWrap.Ready = true;
         window.WazeWrap = WazeWrap;
 
         console.log('WazeWrap Loaded');
     }
+	
+	async function initializeToastr(){
+		try{
+			$('head').append(
+				$('<link/>', {
+					rel: 'stylesheet',
+					type: 'text/css',
+					href: 'https://raw.githubusercontent.com/WazeDev/toastr/master/build/toastr.min.css'
+				}),
+				$('<style type="text/css">#toast-container {position: absolute;} #toast-container > div {opacity: 0.95;} .toast-top-center {top: 32px;}</style>')
+			);
+
+			await $.getScript('https://raw.githubusercontent.com/WazeDev/toastr/master/build/toastr.min.js', function() {
+				toastr.options = {
+					target:'#map',
+					timeOut: 6000,
+					positionClass: 'toast-top-center-wide',
+					closeOnHover: false,
+					closeDuration: 0,
+					showDuration: 0,
+					closeButton: true,
+					progressBar: true
+				};
+			});
+		}
+		catch(err){
+			console.log(err);
+		}
+	}
 
     function initializeScriptUpdateInterface(){
         console.log("creating script udpate interface");
@@ -219,20 +249,20 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 /* jshint ignore:end */
     function Geometry(){
         //Converts to "normal" GPS coordinates
-        this.ConvertTo4326 = function (long, lat){
+        this.ConvertTo4326 = function (lon, lat){
             let projI=new OL.Projection("EPSG:900913");
             let projE=new OL.Projection("EPSG:4326");
-            return (new OL.LonLat(long, lat)).transform(projI,projE);
+            return (new OL.LonLat(lon, lat)).transform(projI,projE);
         };
 
-        this.ConvertTo900913 = function (long, lat){
+        this.ConvertTo900913 = function (lon, lat){
             let projI=new OL.Projection("EPSG:900913");
             let projE=new OL.Projection("EPSG:4326");
-            return (new OL.LonLat(long, lat)).transform(projE,projI);
+            return (new OL.LonLat(lon, lat)).transform(projE,projI);
         };
 
         //Converts the Longitudinal offset to an offset in 4326 gps coordinates
-        this.CalculateLongOffsetGPS = function(longMetersOffset, long, lat)
+        this.CalculateLongOffsetGPS = function(longMetersOffset, lon, lat)
         {
             let R = 6378137; //Earth's radius
             let dLon = longMetersOffset / (R * Math.cos(Math.PI * lat / 180)); //offset in radians
@@ -252,18 +282,18 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
         };
 
         /**
-		 * Checks if the given geometry is on screen
+		 * Checks if the given lon & lat
          * @function WazeWrap.Geometry.isGeometryInMapExtent
-         * @param {OL.Geometry} Geometry to check if any part of is in the current viewport
+         * @param {lon, lat} object
          */
         this.isLonLatInMapExtent = function (lonLat) {
             return lonLat && W.map.getExtent().containsLonLat(lonLat);
         };
 
         /**
-		 * Checks if the given geometry is on screen
+		 * Checks if the given geometry point is on screen
          * @function WazeWrap.Geometry.isGeometryInMapExtent
-         * @param {OL.Geometry} Geometry to check if any part of is in the current viewport
+         * @param {OL.Geometry.Point} Geometry Point we are checking if it is in the extent
          */
         this.isGeometryInMapExtent = function (geometry) {
             return geometry && geometry.getBounds &&
@@ -271,7 +301,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
         };
 
         /**
-		 * Calculates the distance between two given points, returned in meters
+		 * Calculates the distance between given points, returned in meters
          * @function WazeWrap.Geometry.calculateDistance
          * @param {OL.Geometry.Point} An array of OL.Geometry.Point with which to measure the total distance. A minimum of 2 points is needed.
          */
@@ -284,6 +314,13 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             return length; //multiply by 3.28084 to convert to feet
         };
 
+		/**
+		 * Finds the closest on-screen drivable segment to the given point, ignoring PLR and PR segments if the options are set
+		 * @function WazeWrap.Geometry.findClosestSegment
+		 * @param {OL.Geometry.Point} The given point to find the closest segment to
+		 * @param {boolean} If true, Parking Lot Road segments will be ignored when finding the closest segment
+		 * @param {boolean} If true, Private Road segments will be ignored when finding the closest segment
+		**/
         this.findClosestSegment = function(mygeometry, ignorePLR, ignoreUnnamedPR){
             let onscreenSegments = WazeWrap.Model.getOnscreenSegments();
             let minDistance = Infinity;
@@ -359,14 +396,23 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             return this.getStateName(segObj.attributes.primaryStreetID);
         };
 
-        //returns an array of segmentIDs for all segments that are part of the same roundabout as the passed segment
+		/**
+		 * Returns an array of segment IDs for all segments that make up the roundabout the given segment is part of
+		 * @function WazeWrap.Model.getAllRoundaboutSegmentsFromObj
+		 * @param {Segment object (Waze/Feature/Vector/Segment)} The roundabout segment
+		**/
         this.getAllRoundaboutSegmentsFromObj = function(segObj){
             if(segObj.model.attributes.junctionID === null)
                 return null;
 
             return W.model.junctions.objects[segObj.model.attributes.junctionID].attributes.segIDs;
         };
-
+		
+		/**
+		 * Returns an array of all junction nodes that make up the roundabout
+		 * @function WazeWrap.Model.getAllRoundaboutJunctionNodesFromObj
+		 * @param {Segment object (Waze/Feature/Vector/Segment)} The roundabout segment
+		**/
         this.getAllRoundaboutJunctionNodesFromObj = function(segObj){
             let RASegs = this.getAllRoundaboutSegmentsFromObj(segObj);
             let RAJunctionNodes = [];
@@ -376,20 +422,28 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             return RAJunctionNodes;
         };
 
+		/**
+		 * Checks if the given segment ID is a part of a roundabout
+		 * @function WazeWrap.Model.isRoundaboutSegmentID
+		 * @param {integer} The segment ID to check
+		**/
         this.isRoundaboutSegmentID = function(segmentID){
-            if(W.model.segments.getObjectById(segmentID).attributes.junctionID === null)
-                return false;
-            else
-                return true;
+            return W.model.segments.getObjectById(segmentID).attributes.junctionID !== null
         };
 
+		/**
+		 * Checks if the given segment object is a part of a roundabout
+		 * @function WazeWrap.Model.isRoundaboutSegmentID
+		 * @param {Segment object (Waze/Feature/Vector/Segment)} The segment object to check
+		**/
         this.isRoundaboutSegmentObj = function(segObj){
-            if(segObj.model.attributes.junctionID === null)
-                return false;
-            else
-                return true;
+			return segObj.model.attributes.junctionID !== null;
         };
 
+		/**
+		 * Returns an array of all segments in the current extent
+		 * @function WazeWrap.Model.getOnscreenSegments
+		**/
         this.getOnscreenSegments = function(){
             let segments = W.model.segments.objects;
             let mapExtent = W.map.getExtent();
@@ -454,7 +508,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
         /**
          * Retrives a route from the Waze Live Map.
          * @class
-         * @name wLib.Model.RouteSelection
+         * @name WazeWrap.Model.RouteSelection
          * @param firstSegment The segment to use as the start of the route.
          * @param lastSegment The segment to use as the destination for the route.
          * @param {Array|Function} callback A function or array of funcitons to be
@@ -470,10 +524,10 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
          * longtrails: {Boolean} Whether or not to avoid long dirt roads. Default
          * is false.
          * uturns: {Boolean} Whether or not to allow U-turns. Default is true.
-         * @return {wLib.Model.RouteSelection} The new RouteSelection object.
+         * @return {WazeWrap.Model.RouteSelection} The new RouteSelection object.
          * @example: // The following example will retrieve a route from the Live Map and select the segments in the route.
          * selection = W.selectionManager.selectedItems;
-         * myRoute = new wLib.Model.RouteSelection(selection[0], selection[1], function(){this.selectRouteSegments();}, {fastest: true});
+         * myRoute = new WazeWrap.Model.RouteSelection(selection[0], selection[1], function(){this.selectRouteSegments();}, {fastest: true});
          */
         this.RouteSelection = function (firstSegment, lastSegment, callback, options) {
             var i,
@@ -515,7 +569,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
         };
 
         this.RouteSelection.prototype =
-            /** @lends wLib.Model.RouteSelection.prototype */ {
+            /** @lends WazeWrap.Model.RouteSelection.prototype */ {
 
             /**
              * Formats the routing options string for the ajax request.
@@ -654,21 +708,30 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
     }
 
     function User(){
+		/**
+		 * Returns the "normalized" (1 based) user rank/level
+		 */
         this.Rank = function(){
             return W.loginManager.user.normalizedLevel;
         };
 
+		/**
+		 * Returns the current user's username
+		 */
         this.Username = function(){
             return W.loginManager.user.userName;
         };
 
+		/**
+		 * Returns if the user is a CM (in any country)
+		 */
         this.isCM = function(){
-            if(W.loginManager.user.editableCountryIDs.length > 0)
-                return true;
-            else
-                return false;
+            return W.loginManager.user.editableCountryIDs.length > 0
         };
 
+		/**
+		 * Returns if the user is an Area Manager (in any country)
+		 */
         this.isAM = function(){
             return W.loginManager.user.isAreaManager;
         };
@@ -959,6 +1022,13 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             };
         } ();
 
+		/**
+		 * Returns orthogonalized geometry for the given geometry and threshold
+		 * @function WazeWrap.Util.OrthogonalizeGeometry
+		 * @param {OL.Geometry} The OL.Geometry to orthogonalize
+		 * @param {integer} threshold to use for orthogonalization - the higher the threshold, the more nodes that will be removed
+		 * @return {OL.Geometry } Orthogonalized geometry
+		**/
         this.OrthogonalizeGeometry = function (geometry, threshold = 12) {
             let nomthreshold = threshold, // degrees within right or straight to alter
                 lowerThreshold = Math.cos((90 - nomthreshold) * Math.PI / 180),
@@ -1166,6 +1236,81 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 
             return Orthogonalize();
         };
+		
+		/**
+		 * Returns the general location of the segment queried
+		 * @function WazeWrap.Util.findSegment
+		 * @param {OL.Geometry} The server to search on. The current server can be obtained from W.app.getAppRegionCode()
+		 * @param {integer} The segment ID to search for
+		 * @return {OL.Geometry.Point} A point at the general location of the segment, null if the segment is not found
+		**/
+		this.findSegment = async function(server, segmentID){
+			let apiURL = location.origin;
+			switch(server){
+				case 'row':
+					apiURL += '/row-Descartes/app/HouseNumbers?ids=';
+					break;
+				case 'il':
+					apiURL += '/il-Descartes/app/HouseNumbers?ids=';
+					break;
+				case 'usa':
+				default:
+					apiURL += '/Descartes/app/HouseNumbers?ids=';
+			}
+			let response, result = null;
+			try{
+				response = await $.get(`${apiURL + segmentID}`);
+				if(response && response.editAreas.objects.length > 0){
+					let segGeoArea = response.editAreas.objects[0].geometry.coordinates[0];
+					let ringGeo = [];
+					for(let i=0; i < segGeoArea.length - 1; i++)
+						ringGeo.push(new OL.Geometry.Point(segGeoArea[i][0], segGeoArea[i][1]));
+					if(ringGeo.length>0){
+						let ring = new OL.Geometry.LinearRing(ringGeo);
+						result = ring.getCentroid();
+					}
+				}
+			}
+			catch(err){
+				console.log(err);
+			}
+
+			return result;
+		};
+	
+		/**
+		 * Returns the location of the venue queried
+		 * @function WazeWrap.Util.findVenue
+		 * @param {OL.Geometry} The server to search on. The current server can be obtained from W.app.getAppRegionCode()
+		 * @param {integer} The venue ID to search for
+		 * @return {OL.Geometry.Point} A point at the location of the venue, null if the venue is not found
+		**/
+		this.findVenue = async function(server, venueID){
+			let apiURL = location.origin;
+			switch(server){
+				case 'row':
+					apiURL += '/row-SearchServer/mozi?max_distance_kms=&lon=-84.22637&lat=39.61097&format=PROTO_JSON_FULL&venue_id=';
+					break;
+				case 'il':
+					apiURL += '/il-SearchServer/mozi?max_distance_kms=&lon=-84.22637&lat=39.61097&format=PROTO_JSON_FULL&venue_id=';
+					break;
+				case 'usa':
+				default:
+					apiURL += '/SearchServer/mozi?max_distance_kms=&lon=-84.22637&lat=39.61097&format=PROTO_JSON_FULL&venue_id=';
+			}
+			let response, result = null;
+			try{
+				response = await $.get(`${apiURL + venueID}`);
+				if(response && response.venue){
+					result = new OL.Geometry.Point(response.venue.location.x, response.venue.location.y);
+				}
+			}
+			catch(err){
+				console.log(err);
+			}
+
+			return result;
+		};
     }
 	
 	function Events(){
@@ -1211,15 +1356,17 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 		
 		this.unregister = function(event, context, handler){
 			let unregHandler;
-			for(let i=0; i < eventHandlerList[event].length; i++){
-				if(eventHandlerList[event][i].origFunc.toString() == handler.toString())
-					unregHandler = eventHandlerList[event][i].newFunc;
-			}
-			if(typeof unregHandler != "undefined"){
-				if(event === 'change:editingHouseNumbers' || event === 'change:mode' || event === 'change:isImperial')
-					eventMap[event].unregister(event, unregHandler);
-				else
-					eventMap[event].unregister(event, context, unregHandler);
+			if(eventHandlerList && eventHandlerList[event]){ //Must check in case a script is trying to unregister before registering an eventhandler and one has not yet been created
+				for(let i=0; i < eventHandlerList[event].length; i++){
+					if(eventHandlerList[event][i].origFunc.toString() == handler.toString())
+						unregHandler = eventHandlerList[event][i].newFunc;
+				}
+				if(typeof unregHandler != "undefined"){
+					if(event === 'change:editingHouseNumbers' || event === 'change:mode' || event === 'change:isImperial')
+						eventMap[event].unregister(event, unregHandler);
+					else
+						eventMap[event].unregister(event, context, unregHandler);
+				}
 			}
 		};
 		
@@ -1237,6 +1384,19 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             };
         } ();
 
+		/**
+		 * Creates a keyboard shortcut for the supplied callback event
+		 * @function WazeWrap.Interface.Shortcut
+		 * @param {string} 
+		 * @param {string} 
+		 * @param {string} 
+		 * @param {string} 
+		 * @param {string} 
+		 * @param {function} 
+		 * @param {object} 
+		 * @param {integer} The segment ID to search for
+		 * @return {OL.Geometry.Point} A point at the general location of the segment, null if the segment is not found
+		**/
         this.Shortcut = class Shortcut{
             constructor(name, desc, group, title, shortcut, callback, scope){
                 if ('string' === typeof name && name.length > 0 && 'string' === typeof shortcut && 'function' === typeof callback) {
@@ -1388,6 +1548,14 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             }
         }
 
+		/**
+		 * Creates a tab in the side panel
+		 * @function WazeWrap.Interface.Tab
+		 * @param {string} 
+		 * @param {string} 
+		 * @param {function} 
+		 * @param {object} 
+		**/
         this.Tab = class Tab{
             constructor(name, content, callback, context){
                 this.TAB_SELECTOR = '#user-tabs ul.nav-tabs';
@@ -1464,80 +1632,105 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
             }
         }
 
+		/**
+		 * Creates a checkbox in the layer menu
+		 * @function WazeWrap.Interface.AddLayerCheckbox
+		 * @param {string} 
+		 * @param {string} 
+		 * @param {boolean} 
+		 * @param {function} 
+		 * @param {object} 
+		 * @param {Layer object}
+		**/
         this.AddLayerCheckbox = function(group, checkboxText, checked, callback, layer){
-		group = group.toLowerCase();
-		let normalizedText = checkboxText.toLowerCase().replace(/\s/g, '_');
-		let checkboxID = "layer-switcher-item_" + normalizedText;
-		let groupPrefix = 'layer-switcher-group_';
-		let groupClass = groupPrefix + group.toLowerCase();
-		sessionStorage[normalizedText] = checked;
+			group = group.toLowerCase();
+			let normalizedText = checkboxText.toLowerCase().replace(/\s/g, '_');
+			let checkboxID = "layer-switcher-item_" + normalizedText;
+			let groupPrefix = 'layer-switcher-group_';
+			let groupClass = groupPrefix + group.toLowerCase();
+			sessionStorage[normalizedText] = checked;
 
-		let CreateParentGroup = function(groupChecked){
-			let groupList = $('.layer-switcher').find('.list-unstyled.togglers');
-			let checkboxText = group.charAt(0).toUpperCase() + group.substr(1);
-			let newLI = $('<li class="group">');
-			newLI.html([
-				'<div class="controls-container toggler">',
-				'<input class="' + groupClass + '" id="' + groupClass + '" type="checkbox" ' + (groupChecked ? 'checked' : '') +'>',
-				'<label for="' + groupClass + '">',
-				'<span class="label-text">'+ checkboxText + '</span>',
-				'</label></div>',
-				'<ul class="children"></ul>'
-			].join(' '));
+			let CreateParentGroup = function(groupChecked){
+				let groupList = $('.layer-switcher').find('.list-unstyled.togglers');
+				let checkboxText = group.charAt(0).toUpperCase() + group.substr(1);
+				let newLI = $('<li class="group">');
+				newLI.html([
+					'<div class="controls-container toggler">',
+					'<input class="' + groupClass + '" id="' + groupClass + '" type="checkbox" ' + (groupChecked ? 'checked' : '') +'>',
+					'<label for="' + groupClass + '">',
+					'<span class="label-text">'+ checkboxText + '</span>',
+					'</label></div>',
+					'<ul class="children"></ul>'
+				].join(' '));
 
-			groupList.append(newLI);
-			$('#' + groupClass).change(function(){sessionStorage[groupClass] = this.checked;});
+				groupList.append(newLI);
+				$('#' + groupClass).change(function(){sessionStorage[groupClass] = this.checked;});
+			};
+
+			if(group !== "issues" && group !== "places" && group !== "road" && group !== "display") //"non-standard" group, check its existence
+				if($('.'+groupClass).length === 0){ //Group doesn't exist yet, create it
+					let isParentChecked = (typeof sessionStorage[groupClass] == "undefined" ? true : sessionStorage[groupClass]=='true');
+					CreateParentGroup(isParentChecked);  //create the group
+					sessionStorage[groupClass] = isParentChecked;
+
+					W.app.modeController.model.bind('change:mode', function(model, modeId, context){ //make it reappear after changing modes
+						CreateParentGroup((sessionStorage[groupClass]=='true'));
+					});
+				}
+
+			var buildLayerItem = function(isChecked){
+				let groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
+				let $li = $('<li>');
+				$li.html([
+					'<div class="controls-container toggler">',
+					'<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
+					'<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
+					'</div>',
+				].join(' '));
+
+				groupChildren.append($li);
+				$('#' + checkboxID).prop('checked', isChecked);
+				$('#' + checkboxID).change(function(){callback(this.checked); sessionStorage[normalizedText] = this.checked;});
+				if(!$('#' + groupClass).is(':checked')){
+					$('#' + checkboxID).prop('disabled', true);
+					if(typeof layer === 'undefined')
+						callback(false);
+					else{
+						if($.isArray(layer))
+							$.each(layer, (k,v) => {v.setVisibility(false);});
+						else
+							layer.setVisibility(false);
+					}
+				}
+
+				$('#' + groupClass).change(function(){
+					$('#' + checkboxID).prop('disabled', !this.checked);
+					if(typeof layer === 'undefined')
+						callback(!this.checked ? false : sessionStorage[normalizedText]=='true');
+					else{
+						if($.isArray(layer))
+							$.each(layer, (k, v) => {v.setVisibility(this.checked);});
+						else
+							layer.setVisibility(this.checked);
+					}
+				});
+			};
+
+			W.app.modeController.model.bind('change:mode', function(model, modeId, context){
+				buildLayerItem((sessionStorage[normalizedText]=='true'));
+			});
+			buildLayerItem(checked);
 		};
 
-		if(group !== "issues" && group !== "places" && group !== "road" && group !== "display") //"non-standard" group, check its existence
-			if($('.'+groupClass).length === 0){ //Group doesn't exist yet, create it
-				let isParentChecked = (typeof sessionStorage[groupClass] == "undefined" ? true : sessionStorage[groupClass]=='true');
-				CreateParentGroup(isParentChecked);  //create the group
-				sessionStorage[groupClass] = isParentChecked;
-
-				W.app.modeController.model.bind('change:mode', function(model, modeId, context){ //make it reappear after changing modes
-					CreateParentGroup((sessionStorage[groupClass]=='true'));
-				});
-			}
-
-		var buildLayerItem = function(isChecked){
-			let groupChildren = $("."+groupClass).parent().parent().find('.children').not('.extended');
-			let $li = $('<li>');
-			$li.html([
-				'<div class="controls-container toggler">',
-				'<input type="checkbox" id="' + checkboxID + '"  class="' + checkboxID + ' toggle">',
-				'<label for="' + checkboxID + '"><span class="label-text">' + checkboxText + '</span></label>',
-				'</div>',
-			].join(' '));
-
-			groupChildren.append($li);
-			$('#' + checkboxID).prop('checked', isChecked);
-			$('#' + checkboxID).change(function(){callback(this.checked); sessionStorage[normalizedText] = this.checked;});
-			if(!$('#' + groupClass).is(':checked')){
-				$('#' + checkboxID).prop('disabled', true);
-				if(typeof layer === 'undefined')
-					callback(false);
-				else
-					layer.setVisibility(false);
-			}
-
-			$('#' + groupClass).change(function(){
-				$('#' + checkboxID).prop('disabled', !this.checked);
-				if(typeof layer === 'undefined')
-					callback(!this.checked ? false : sessionStorage[normalizedText]=='true');
-				else
-					layer.setVisibility(this.checked);
-				});
-		};
-
-
-		W.app.modeController.model.bind('change:mode', function(model, modeId, context){
-			buildLayerItem((sessionStorage[normalizedText]=='true'));
-		});
-
-		buildLayerItem(checked);
-	};
-
+		/**
+		 * Shows the script update window with the given update text
+		 * @function WazeWrap.Interface.ShowScriptUpdate
+		 * @param {string} 
+		 * @param {string} 
+		 * @param {string} 
+		 * @param {string} 
+		 * @param {string} 
+		**/
         this.ShowScriptUpdate = function(scriptName, version, updateHTML, greasyforkLink = "", forumLink = ""){
             let settings;
             function loadSettings() {
@@ -1564,7 +1757,7 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 
             loadSettings();
 
-            if(typeof settings.ScriptUpdateHistory[scriptName] === "undefined" || settings.ScriptUpdateHistory[scriptName] != version){
+            if((updateHTML && updateHTML.length > 0) && (typeof settings.ScriptUpdateHistory[scriptName] === "undefined" || settings.ScriptUpdateHistory[scriptName] != version)){
                 let currCount = $('.WWSU-script-item').length;
                 let divID = (scriptName + ("" + version)).toLowerCase().replace(/[^a-z-_0-9]/g, '');
                 $('#WWSU-script-list').append(`<a href="#${divID}" class="WWSU-script-item ${currCount === 0 ? 'WWSU-active' : ''}">${scriptName}</a>`); //add the script's tab
