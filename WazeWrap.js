@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.23.01
+// @version      2019.04.23.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.23.01"};
+var WazeWrap = {Ready: false, Version: "2019.04.23.02"};
 
 (function() {
     'use strict';
@@ -57,6 +57,7 @@ var WazeWrap = {Ready: false, Version: "2019.04.23.01"};
         WazeWrap.Require = new Require();
         WazeWrap.String = new String();
 		WazeWrap.Events = new Events();
+	WazeWrap.Alerts = new Alerts();
 
         WazeWrap.getSelectedFeatures = function(){
             return W.selectionManager.getSelectedFeatures();
