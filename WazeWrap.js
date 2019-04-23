@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.22.05
+// @version      2019.04.23.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.22.05"};
+var WazeWrap = {Ready: false, Version: "2019.04.23.01"};
 
 (function() {
     'use strict';
@@ -1779,7 +1779,34 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                 saveSettings();
             }
         };
+
     }
+	
+	function Alerts(){
+		this.success = function(scriptName, message){
+			wazedevtoastr.success(message, scriptName);
+		}
+		
+		this.info = function(scriptName, message){
+			wazedevtoastr.info(message, scriptName);
+		}
+		
+		this.warning = function(scriptName, message){
+			wazedevtoastr.warning(message, scriptName);
+		}
+		
+		this.error = function(scriptName, message){
+			wazedevtoastr.error(message, scriptName);
+		}
+		
+		this.prompt = function(scriptName, message, okFunction, cancelFunction){
+			wazedevtoastr.prompt(message, scriptName, {promptOK: okFunction, promptCancel: cancelFunction});
+		}
+		
+		this.confirm = function(scriptName, message, okFunction, cancelFunction){
+			wazedevtoastr.confirm(message, scriptName, {confirmOK: okFunction, confirmCancel: cancelFunction});
+		}
+	}
 
     function String(){
         this.toTitleCase = function(str){
