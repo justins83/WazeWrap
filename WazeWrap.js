@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.24.01
+// @version      2019.04.25.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.24.01"};
+var WazeWrap = {Ready: false, Version: "2019.04.25.01"};
 
 (function() {
     'use strict';
@@ -1804,8 +1804,8 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 			wazedevtoastr.prompt(message, scriptName, {promptOK: okFunction, promptCancel: cancelFunction, PromptDefaultInput: defaultText});
 		}
 		
-		this.confirm = function(scriptName, message, okFunction, cancelFunction){
-			wazedevtoastr.confirm(message, scriptName, {confirmOK: okFunction, confirmCancel: cancelFunction});
+		this.confirm = function(scriptName, message, okFunction, cancelFunction, okBtnText = "Ok", cancelBtnText = "Cancel"){
+			wazedevtoastr.confirm(message, scriptName, {confirmOK: okFunction, confirmCancel: cancelFunction, ConfirmOkButtonText: okBtnText, ConfirmCancelButtonText: cancelBtnText});
 		}
 	}
 
