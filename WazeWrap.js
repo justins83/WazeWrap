@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.26.02
+// @version      2019.04.26.03
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.26.02"};
+var WazeWrap = {Ready: false, Version: "2019.04.26.03"};
 
 (function() {
     'use strict';
@@ -178,10 +178,10 @@ var WazeWrap = {Ready: false, Version: "2019.04.26.02"};
             '#WWSU-script-update-info { width:auto; background-color:white; height:275px; overflow-y:auto; border-radius:8px; box-shadow: rgba(0, 0, 0, 0.09) 0px 6px 7px 0.09px; padding:15px; position:relative;}',
             '#WWSU-script-update-info div { display: none;}',
             '#WWSU-script-update-info div:target { display: block; }',
-			'.WWAlertsHistory {width:32px; height:32px; background-color: #F89406; position: relative; top:35px; left:40px; border-radius: 10px; border: 2px solid; box-size: border-box;}',
-			'.WWAlertsHistory:hover .WWAlertsHistory-list{display:block;}',
-			'.WWAlertsHistory-list{display:none; position:absolute; top:31px; border:2px solid black; border-radius:10px; background-color:white; padding:4px; overflow-y:auto; max-height: 200px;}',
-			'.WWAlertsHistory#toast-container-wazedev > div {max-width:500px; min-width:500px; border-radius:10px;}'
+		'.WWAlertsHistory {width:32px; height:32px; background-color: #F89406; position: relative; top:35px; left:40px; border-radius: 10px; border: 2px solid; box-size: border-box; z-index: 1050;}',
+		'.WWAlertsHistory:hover .WWAlertsHistory-list{display:block;}',
+		'.WWAlertsHistory-list{display:none; position:absolute; top:31px; border:2px solid black; border-radius:10px; background-color:white; padding:4px; overflow-y:auto; max-height: 200px;}',
+		'.WWAlertsHistory-list #toast-container-wazedev > div {max-width:500px; min-width:500px; border-radius:10px;}'
         ].join(' ');
         $('<style type="text/css">' + css + '</style>').appendTo('head');
     }
