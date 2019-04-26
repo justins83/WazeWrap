@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.26.09
+// @version      2019.04.26.10
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.26.09"};
+var WazeWrap = {Ready: false, Version: "2019.04.26.10"};
 
 (function() {
     'use strict';
@@ -127,7 +127,7 @@ var WazeWrap = {Ready: false, Version: "2019.04.26.09"};
 			
 			var $sectionToastr = $("<div>", {style:"padding:8px 16px", id:"wmeWWScriptUpdates"});
 			$sectionToastr.html([
-			'<div class="WWAlertsHistory"><i class="fas fa-exclamation-triangle fa-lg"></i><div class="WWAlertsHistory-list"><div id="toast-container-wazedev"></div></div></div>'
+			'<div class="WWAlertsHistory"><i class="fas fa-exclamation-triangle fa-lg"></i><div id="WWAlertsHistory-list"><div id="toast-container-wazedev"></div></div></div>'
 			].join(' '));
 			$("#WazeMap").append($sectionToastr.html());
 		}
@@ -179,11 +179,11 @@ var WazeWrap = {Ready: false, Version: "2019.04.26.09"};
             '#WWSU-script-update-info div { display: none;}',
             '#WWSU-script-update-info div:target { display: block; }',
 		'.WWAlertsHistory {width:32px; height:32px; background-color: #F89406; position: absolute; top:35px; left:40px; border-radius: 10px; border: 2px solid; box-size: border-box; z-index: 1050;}',
-		'.WWAlertsHistory:hover .WWAlertsHistory-list{display:block;}',
+		'.WWAlertsHistory:hover #WWAlertsHistory-list{display:block;}',
 		'.WWAlertsHistory > .fa-exclamation-triangle {position: absolute; left:50%; margin-left:-10px; margin-top:7px;}',
-		'.WWAlertsHistory-list{display:none; position:absolute; top:28px; border:2px solid black; border-radius:10px; background-color:white; padding:4px; overflow-y:auto; max-height: 300px;}',
-		'.WWAlertsHistory-list #toast-container-wazedev > div {max-width:500px; min-width:500px; border-radius:10px;}',
-		'.WWAlertsHistory-list > #toast-container-wazedev{ position:static; }'
+		'#WWAlertsHistory-list{display:none; position:absolute; top:28px; border:2px solid black; border-radius:10px; background-color:white; padding:4px; overflow-y:auto; max-height: 300px;}',
+		'#WWAlertsHistory-list #toast-container-wazedev > div {max-width:500px; min-width:500px; border-radius:10px;}',
+		'#WWAlertsHistory-list > #toast-container-wazedev{ position:static; }'
         ].join(' ');
         $('<style type="text/css">' + css + '</style>').appendTo('head');
     }
@@ -1797,19 +1797,19 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 	
 	function Alerts(){
 		this.success = function(scriptName, message){
-			wazedevtoastr.success(message, scriptName);
+			$(wazedevtoastr.success(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > #toast-container-wazedev');
 		}
 		
 		this.info = function(scriptName, message){
-			wazedevtoastr.info(message, scriptName);
+			$(wazedevtoastr.info(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > #toast-container-wazedev');
 		}
 		
 		this.warning = function(scriptName, message){
-			wazedevtoastr.warning(message, scriptName);
+			$(wazedevtoastr.warning(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > #toast-container-wazedev');
 		}
 		
 		this.error = function(scriptName, message){
-			wazedevtoastr.error(message, scriptName);
+			$(wazedevtoastr.error(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > #toast-container-wazedev');
 		}
 		
 		this.prompt = function(scriptName, message, defaultText = '', okFunction, cancelFunction){
