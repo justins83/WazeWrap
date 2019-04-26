@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.26.06
+// @version      2019.04.26.07
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.26.06"};
+var WazeWrap = {Ready: false, Version: "2019.04.26.07"};
 
 (function() {
     'use strict';
@@ -182,7 +182,8 @@ var WazeWrap = {Ready: false, Version: "2019.04.26.06"};
 		'.WWAlertsHistory:hover .WWAlertsHistory-list{display:block;}',
 		'.WWAlertsHistory > .fa-exclamation-triangle {position: absolute; left:50%; margin-left:-10px; margin-top:7px;}',
 		'.WWAlertsHistory-list{display:none; position:absolute; top:31px; border:2px solid black; border-radius:10px; background-color:white; padding:4px; overflow-y:auto; max-height: 200px;}',
-		'.WWAlertsHistory-list #toast-container-wazedev > div {max-width:500px; min-width:500px; border-radius:10px;}'
+		'.WWAlertsHistory-list #toast-container-wazedev > div {max-width:500px; min-width:500px; border-radius:10px;}',
+		'.WWAlertsHistory-list > #toast-container-wazedev{ position:static; }'
         ].join(' ');
         $('<style type="text/css">' + css + '</style>').appendTo('head');
     }
