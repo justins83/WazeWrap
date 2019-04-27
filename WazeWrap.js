@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.27.01
+// @version      2019.04.27.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.27.01"};
+var WazeWrap = {Ready: false, Version: "2019.04.27.02"};
 
 (function() {
     'use strict';
@@ -127,7 +127,7 @@ var WazeWrap = {Ready: false, Version: "2019.04.27.01"};
 			
 			var $sectionToastr = $("<div>", {style:"padding:8px 16px", id:"wmeWWScriptUpdates"});
 			$sectionToastr.html([
-			'<div class="WWAlertsHistory"><i class="fas fa-exclamation-triangle fa-lg"></i><div id="WWAlertsHistory-list"><div id="toast-container-history" class="toast-container-wazedev"></div></div></div>'
+			'<div class="WWAlertsHistory"><i class="fa fa-exclamation-triangle fa-lg"></i><div id="WWAlertsHistory-list"><div id="toast-container-history" class="toast-container-wazedev"></div></div></div>'
 			].join(' '));
 			$("#WazeMap").append($sectionToastr.html());
 		}
