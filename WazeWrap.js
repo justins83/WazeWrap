@@ -109,7 +109,7 @@ var WazeWrap = {Ready: false, Version: "2019.04.26.10"};
 					type: 'text/css',
 					href: 'https://cdn.staticaly.com/gh/WazeDev/toastr/master/build/toastr.min.css'
 				}),
-				$('<style type="text/css">#toast-container-wazedev {position: absolute;} #toast-container-wazedev > div {opacity: 0.95;} .toast-top-center-wide {top: 32px;}</style>')
+				$('<style type="text/css">.toast-container-wazedev {position: absolute;} .toast-container-wazedev > div {opacity: 0.95;} .toast-top-center-wide {top: 32px;}</style>')
 			);
 
 			await $.getScript('https://cdn.staticaly.com/gh/WazeDev/toastr/master/build/toastr.min.js', function() {
@@ -127,7 +127,7 @@ var WazeWrap = {Ready: false, Version: "2019.04.26.10"};
 			
 			var $sectionToastr = $("<div>", {style:"padding:8px 16px", id:"wmeWWScriptUpdates"});
 			$sectionToastr.html([
-			'<div class="WWAlertsHistory"><i class="fas fa-exclamation-triangle fa-lg"></i><div id="WWAlertsHistory-list"><div id="toast-container-wazedev"></div></div></div>'
+			'<div class="WWAlertsHistory"><i class="fas fa-exclamation-triangle fa-lg"></i><div id="WWAlertsHistory-list"><div id="toast-container-history" class="toast-container-wazedev"></div></div></div>'
 			].join(' '));
 			$("#WazeMap").append($sectionToastr.html());
 		}
@@ -182,8 +182,8 @@ var WazeWrap = {Ready: false, Version: "2019.04.26.10"};
 		'.WWAlertsHistory:hover #WWAlertsHistory-list{display:block;}',
 		'.WWAlertsHistory > .fa-exclamation-triangle {position: absolute; left:50%; margin-left:-10px; margin-top:7px;}',
 		'#WWAlertsHistory-list{display:none; position:absolute; top:28px; border:2px solid black; border-radius:10px; background-color:white; padding:4px; overflow-y:auto; max-height: 300px;}',
-		'#WWAlertsHistory-list #toast-container-wazedev > div {max-width:500px; min-width:500px; border-radius:10px;}',
-		'#WWAlertsHistory-list > #toast-container-wazedev{ position:static; }'
+		'#WWAlertsHistory-list #toast-container-history > div {max-width:500px; min-width:500px; border-radius:10px;}',
+		'#WWAlertsHistory-list > #toast-container-history{ position:static; }'
         ].join(' ');
         $('<style type="text/css">' + css + '</style>').appendTo('head');
     }
@@ -1797,19 +1797,19 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 	
 	function Alerts(){
 		this.success = function(scriptName, message){
-			$(wazedevtoastr.success(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > #toast-container-wazedev');
+			$(wazedevtoastr.success(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev');
 		}
 		
 		this.info = function(scriptName, message){
-			$(wazedevtoastr.info(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > #toast-container-wazedev');
+			$(wazedevtoastr.info(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev');
 		}
 		
 		this.warning = function(scriptName, message){
-			$(wazedevtoastr.warning(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > #toast-container-wazedev');
+			$(wazedevtoastr.warning(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev');
 		}
 		
 		this.error = function(scriptName, message){
-			$(wazedevtoastr.error(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > #toast-container-wazedev');
+			$(wazedevtoastr.error(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev');
 		}
 		
 		this.prompt = function(scriptName, message, defaultText = '', okFunction, cancelFunction){
