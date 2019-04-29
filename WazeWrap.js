@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.29.07
+// @version      2019.04.29.08
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.29.07"};
+var WazeWrap = {Ready: false, Version: "2019.04.29.08"};
 
 (function() {
     'use strict';
@@ -157,8 +157,8 @@ var WazeWrap = {Ready: false, Version: "2019.04.29.07"};
 			].join(' '));
 			$("#WazeMap").append($sectionToastr.html());
 			
-			$('.WWAlertsHistory').css('left', `${settings.historyLeftLoc}px`);
-			$('.WWAlertsHistory').css('top', `${settings.historyTopLoc}px`);
+			$('.WWAlertsHistory').css('left', `${toastrSettings.historyLeftLoc}px`);
+			$('.WWAlertsHistory').css('top', `${toastrSettings.historyTopLoc}px`);
 			
 			try{
 				await $.getScript("https://greasyfork.org/scripts/28687-jquery-ui-1-11-4-custom-min-js/code/jquery-ui-1114customminjs.js");
