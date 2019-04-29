@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.29.03
+// @version      2019.04.29.04
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.29.03"};
+var WazeWrap = {Ready: false, Version: "2019.04.29.04"};
 
 (function() {
     'use strict';
@@ -107,7 +107,28 @@ var WazeWrap = {Ready: false, Version: "2019.04.29.03"};
     }
 	
 	async function initializeToastr(){
+		let toastrSettings = {};
 		try{
+			function loadSettings() {
+                var loadedSettings = $.parseJSON(localStorage.getItem("WWToastr"));
+                var defaultSettings = {
+                    historyLeftLoc: 35,
+					historyTopLoc: 40
+                };
+                toastrSettings = $.extend({}, defaultSettings, loadedSettings)
+            }
+
+            function saveSettings() {
+                if (localStorage) {
+                    var localsettings = {
+                        historyLeftLoc: toastrSettings.historyLeftLoc,
+						historyTopLoc: toastrSettings.historyTopLoc
+                    };
+
+                    localStorage.setItem("WWToastr", JSON.stringify(localsettings));
+                }
+            }
+			
 			$('head').append(
 				$('<link/>', {
 					rel: 'stylesheet',
@@ -135,6 +156,35 @@ var WazeWrap = {Ready: false, Version: "2019.04.29.03"};
 			'<div class="WWAlertsHistory"><i class="fa fa-exclamation-triangle fa-lg"></i><div id="WWAlertsHistory-list"><div id="toast-container-history" class="toast-container-wazedev"></div></div></div>'
 			].join(' '));
 			$("#WazeMap").append($sectionToastr.html());
+			
+			$('.WWAlertsHistory').css('left', `${settings.historyLeftLoc}px`);
+			$('.WWAlertsHistory').css('top', `${settings.historyTopLoc}px`);
+			
+			try{
+				await $.getScript("https://greasyfork.org/scripts/28687-jquery-ui-1-11-4-custom-min-js/code/jquery-ui-1114customminjs.js");
+			}
+			catch(err){
+				console.log("Could not load jQuery UI " + err);
+			}
+			
+			if($.ui){
+				$('.WWAlertsHistory').draggable({
+					stop: function() {
+						let windowWidth = $('#map').width();
+						let panelWidth = $('#WWAlertsHistory-list').width();
+						let historyLoc = $('.WWAlertsHistory').position().left;
+						if((panelWidth + historyLoc) > windowWidth){
+							$('#WWAlertsHistory-list').css('left', Math.abs(windowWidth - (historyLoc + $('.WWAlertsHistory').width()) - panelWidth) * -1);
+						}
+						else
+							$('#WWAlertsHistory-list').css('left', 'auto');
+						
+						settings.historyLeftLoc = $('.WWAlertsHistory').position().left;
+						settings.historyLeftLoc = $('.WWAlertsHistory').position().top;
+						saveSettings();
+					}
+				});
+			}
 		}
 		catch(err){
 			console.log(err);
@@ -142,7 +192,7 @@ var WazeWrap = {Ready: false, Version: "2019.04.29.03"};
 	}
 
     function initializeScriptUpdateInterface(){
-        console.log("creating script udpate interface");
+        console.log("creating script update interface");
         injectCSS();
         var $section = $("<div>", {style:"padding:8px 16px", id:"wmeWWScriptUpdates"});
         $section.html([
