@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.29.06
+// @version      2019.04.29.07
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.29.06"};
+var WazeWrap = {Ready: false, Version: "2019.04.29.07"};
 
 (function() {
     'use strict';
@@ -180,7 +180,7 @@ var WazeWrap = {Ready: false, Version: "2019.04.29.06"};
 							$('#WWAlertsHistory-list').css('left', 'auto');
 						
 						toastrSettings.historyLeftLoc = $('.WWAlertsHistory').position().left;
-						toastrSettings.historyLeftLoc = $('.WWAlertsHistory').position().top;
+						toastrSettings.historyTopLoc = $('.WWAlertsHistory').position().top;
 						saveSettings();
 					}
 				});
