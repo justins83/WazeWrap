@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.29.04
+// @version      2019.04.30.01
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.29.04"};
+var WazeWrap = {Ready: false, Version: "2019.04.30.01"};
 
 (function() {
     'use strict';
@@ -1867,6 +1867,10 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
 		
 		this.error = function(scriptName, message){
 			$(wazedevtoastr.error(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev');
+		}
+		
+		this.debug = function(scriptName, message){
+			wazedevtoastr.debug(message, scriptName);
 		}
 		
 		this.prompt = function(scriptName, message, defaultText = '', okFunction, cancelFunction){
