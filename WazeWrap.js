@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrap
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.04.30.01
+// @version      2019.04.30.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -15,7 +15,7 @@
 /* global & */
 /* jshint esversion:6 */
 
-var WazeWrap = {Ready: false, Version: "2019.04.30.01"};
+var WazeWrap = {Ready: false, Version: "2019.04.30.02"};
 
 (function() {
     'use strict';
@@ -155,7 +155,7 @@ var WazeWrap = {Ready: false, Version: "2019.04.30.01"};
 		    		return;
 			var $sectionToastr = $("<div>", {style:"padding:8px 16px", id:"wmeWWScriptUpdates"});
 			$sectionToastr.html([
-			'<div class="WWAlertsHistory" title="Alerts History"><i class="fa fa-exclamation-triangle fa-lg"></i><div id="WWAlertsHistory-list"><div id="toast-container-history" class="toast-container-wazedev"></div></div></div>'
+			'<div class="WWAlertsHistory" title="Script Alert History"><i class="fa fa-exclamation-triangle fa-lg"></i><div id="WWAlertsHistory-list"><div id="toast-container-history" class="toast-container-wazedev"></div></div></div>'
 			].join(' '));
 			$("#WazeMap").append($sectionToastr.html());
 			
@@ -1849,24 +1849,28 @@ c&&"styleUrl"!=c){var d=this.createElementNS(this.kmlns,"Data");d.setAttribute("
                 saveSettings();
             }
         };
-
     }
 	
 	function Alerts(){
 		this.success = function(scriptName, message){
-			$(wazedevtoastr.success(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev');
+			$(wazedevtoastr.success(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev').find('.toast-close-button').remove();
 		}
 		
-		this.info = function(scriptName, message){
-			$(wazedevtoastr.info(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev');
+		this.info = function(scriptName, message, disableTimeout, disableClickToClose){
+			let options = {};
+			if(disableTimeout)
+				options.timeOut = 0;
+			if(disableClickToClose)
+				options.tapToDismiss = false;
+			$(wazedevtoastr.info(message, scriptName, options)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev').find('.toast-close-button').remove();
 		}
 		
 		this.warning = function(scriptName, message){
-			$(wazedevtoastr.warning(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev');
+			$(wazedevtoastr.warning(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev').find('.toast-close-button').remove();
 		}
 		
 		this.error = function(scriptName, message){
-			$(wazedevtoastr.error(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev');
+			$(wazedevtoastr.error(message, scriptName)).clone().prependTo('#WWAlertsHistory-list > .toast-container-wazedev').find('.toast-close-button').remove();
 		}
 		
 		this.debug = function(scriptName, message){
