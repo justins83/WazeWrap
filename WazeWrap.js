@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.05.01.01
+// @version      2019.05.01.02
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -38,6 +38,7 @@
 
     function init(){
         console.log("WazeWrap initializing...");
+	    WazeWrap.Version = GM_info.script.version;
         WazeWrap.isBetaEditor = /beta/.test(location.href);
 
         //SetUpRequire();
