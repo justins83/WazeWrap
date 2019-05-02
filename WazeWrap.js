@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WazeWrapBeta
 // @namespace    https://greasyfork.org/users/30701-justins83-waze
-// @version      2019.05.02.02
+// @version      2019.05.02.03
 // @description  A base library for WME script writers
 // @author       JustinS83/MapOMatic
 // @include      https://beta.waze.com/*editor*
@@ -39,7 +39,7 @@
     function init(){
         console.log("WazeWrap initializing...");
 	    debugger;
-	    WazeWrap.Version = "2019.05.02.02";
+	    WazeWrap.Version = "2019.05.02.03";
         WazeWrap.isBetaEditor = /beta/.test(location.href);
 
         //SetUpRequire();
@@ -135,12 +135,12 @@
 				$('<link/>', {
 					rel: 'stylesheet',
 					type: 'text/css',
-					href: 'https://cdn.staticaly.com/gh/WazeDev/toastr/master/build/toastr.min.css'
+					href: 'https://cdn.staticaly.com/gh/WazeDev/toastr/master/build/toastr.min.css?env=dev'
 				}),
 				$('<style type="text/css">.toast-container-wazedev > div {opacity: 0.95;} .toast-top-center-wide {top: 32px;}</style>')
 			);
 
-			await $.getScript('https://cdn.staticaly.com/gh/WazeDev/toastr/master/build/toastr.min.js', function() {
+			await $.getScript('https://cdn.staticaly.com/gh/WazeDev/toastr/master/build/toastr.min.js?env=dev', function() {
 				wazedevtoastr.options = {
 					target:'#map',
 					timeOut: 6000,
